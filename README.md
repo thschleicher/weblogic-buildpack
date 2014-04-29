@@ -8,23 +8,13 @@ The `weblogic-buildpack` is a custom [Cloud Foundry] buildpack, based on a fork 
 
 The [Java-Buildpack] itself is a [Cloud Foundry][] buildpack for running JVM-based applications.  It is designed to run many JVM-based applications ([Grails][], [Groovy][], Java Main, [Play Framework][], [Spring Boot][], and Servlet) with no additional configuration, but supports configuration of the standard components, and extension to add custom components.
 
-
 ## Usage
+
 To use this buildpack specify the URI of the repository when pushing an application to Cloud Foundry:
 
 ```bash
 cf push <APP-NAME> -p <ARTIFACT> -b https://github.com/pivotal-cf/weblogic-buildpack.git
 ```
-
-## Examples
-The following are _very_ simple examples for deploying the artifact types that we support.
-
-* [Grails](docs/example-grails.md)
-* [Groovy](docs/example-groovy.md)
-* [Java Main](docs/example-java_main.md)
-* [Play Framework](docs/example-play_framework.md)
-* [Servlet](docs/example-servlet.md)
-* [Spring Boot CLI](docs/example-spring_boot_cli.md)
 
 ## Configuration and Extension
 The buildpack supports configuration and extension through the use of Git repository forking.  The easiest way to accomplish this is to use [GitHub's forking functionality][] to create a copy of this repository.  Make the required configuration and extension changes in the copy of the repository.  Then specify the URL of the new repository when pushing Cloud Foundry applications.  If the modifications are generally applicable to the Cloud Foundry community, please submit a [pull request][] with the changes.
@@ -93,12 +83,11 @@ bash
 bundle install
 bundle exec rake package OFFLINE=true
 ...
-Creating build/java-buildpack-offline-cfd6b17.zip
+Creating build/weblogic-buildpack-offline-cfd6b17.zip
 ```
 
 ### Package Versioning
 Keeping track of different versions of the buildpack can be difficult.  To help with this, the rake `package` task puts a version discriminator in the name of the created package file.  The default value for this discriminator is the current Git hash (e.g. `cfd6b17`).  To change the version when creating a package, use the `VERSION=<VERSION>` argument:
-
 ```bash
 bundle install
 bundle exec rake package VERSION=2.1
@@ -122,17 +111,25 @@ bundle exec rake
 ## License
 This buildpack is released under version 2.0 of the [Apache License][].
 
-[`config/` directory]: config
 [Apache License]: http://www.apache.org/licenses/LICENSE-2.0
 [Cloud Foundry]: http://www.cloudfoundry.com
 [contributor guidelines]: CONTRIBUTING.md
-[disables `remote_downloads`]: docs/extending-caches.md#configuration
 [GitHub's forking functionality]: https://help.github.com/articles/fork-a-repo
 [Grails]: http://grails.org
 [Groovy]: http://groovy.codehaus.org
-[Java-Buildpack]: https://github.com/cloudfoundry/java-buildpack
+[Installing Cloud Foundry on Vagrant]: http://blog.cloudfoundry.com/2013/06/27/installing-cloud-foundry-on-vagrant/
 [Play Framework]: http://www.playframework.com
 [pull request]: https://help.github.com/articles/using-pull-requests
 [Pull requests]: http://help.github.com/send-pull-requests
-[Running Cloud Foundry locally]: http://docs.cloudfoundry.org/deploying/run-local.html
 [Spring Boot]: http://projects.spring.io/spring-boot/
+[java-buildpack]: http://github.com/cloudfoundry/java-buildpack/
+[Oracle WebLogic Application Server]: http://www.oracle.com/technetwork/middleware/weblogic/overview/index.html
+[bosh-lite]: http://github.com/cloudfoundry/bosh-lite/
+[Pivotal Web Services Marketplace]: http://docs.run.pivotal.io/marketplace/services/
+[User Provided Services]: http://docs.run.pivotal.io/devguide/services/user-provided.html
+[Linux 64 bit JRE]: http://javadl.sun.com/webapps/download/AutoDL?BundleId=83376
+[WebLogic Server]: http://www.oracle.com/technetwork/middleware/weblogic/downloads/index.html
+[limited footprint]: http://docs.oracle.com/middleware/1212/wls/START/overview.htm#START234
+[syslog drain endpoint like Splunk]: http://www.youtube.com/watch?v=rk_K_AAHEEI
+
+

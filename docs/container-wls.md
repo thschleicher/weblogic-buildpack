@@ -114,6 +114,32 @@ The container can be configured by modifying the [`config/weblogic.yml`][] file 
 	  The buildpack would look for an **`index.yml`** file at the specified **repository_root** for obtaining WebLogic related bits.
 	  The index.yml at the repository_root location should have a entry matching the WebLogic server version and the corresponding release bits
 
+# WebLogic Domain Config
+
+The **`weblogic-buildpack`** creates a WebLogic Server Domain using a domain configuration yaml file present under the **`.wls`** folder of the application.
+
+The [weblogic.yml](../config/weblogic.yml) file within the buildpack is used to specify the WebLogic Server Binary download site.
+It also manages some configurations used for the WLS Domain creation.
+
+   * The WebLogic Server release bits and jdk binaries should be accessible for download from a server (can be internal or public facing) for the buildpack to create the necessary configurations along with the app bits.
+     Download the [Linux 64 bit JRE][] version and [WebLogic Server][] generic version.
+
+   * Edit the repository_root of [weblogic.yml](config/weblogic.yml) to point to the server hosting the weblogic binary.
+
+     Sample `repository_root` for weblogic.yml (under weblogic-buildpack/config)
+
+      ```
+      --
+        version: 12.1.+
+        repository_root: "http://12.1.1.1:7777/fileserver/wls"
+        preferAppConfig: false
+        startInWlxMode: false
+
+      ```
+
+      The buildpack would look for an `index.yml` file at the specified repository_root url for obtaining WebLogic related bits.
+      The index.yml at the repository_root location should have a entry matching the weblogic server version and the corresponding release bits
+
       ```
         ---
           12.1.2: http://12.1.1.1:7777/fileserver/wls/wls1212_dev.zip
@@ -534,12 +560,6 @@ OK
 TIP: Use 'cf push' to ensure your env variable changes take effect
 ```
 
-## Configuration and Extension
-
-The buildpack supports configuration and extension through the use of Git repository forking.  The easiest way to accomplish this is to use [GitHub's forking functionality][] to create a copy of this repository.  Make the required configuration and extension changes in the copy of the repository.  Then specify the URL of the new repository when pushing Cloud Foundry applications.  If the modifications are generally applicable to the Cloud Foundry community, please submit a [pull request][] with the changes.
-
-To learn how to configure various properties of the buildpack, follow the "Configuration" links below. More information on extending the buildpack is available [here](docs/extending.md).
-
 ## Potential Issues
 
 * Oracle WebLogic 12c (v12.1.2) Development release bits containing purely WebLogic Server packaged as a zip file (under 200 MB ) can be used with just the JRE. However, full installs (over 800MB of WebLogic Server bundled with or without other products bits) in form of Jar file would require full JDK and not just JRE. The buildpack would fail during the install of the WebLogic install binaries if just used against JRE. This will also affect the size of the droplet, pushing it beyond 1GB in size. Ensure corresponding increase in the client_max_body_size settings in the cf deployment manifest.
@@ -706,7 +726,4 @@ Connected, dumping recent logs for app ff in org sabha / space sabha as admin...
 [User Provided Services]: http://docs.run.pivotal.io/devguide/services/user-provided.html
 [version syntax]: extending-repositories.md#version-syntax-and-ordering
 [WebLogic Server]: http://www.oracle.com/technetwork/middleware/weblogic/downloads/index.html
-=======
-weblogic-buildpack
-==================
 

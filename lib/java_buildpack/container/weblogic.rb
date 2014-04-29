@@ -20,6 +20,7 @@ require 'java_buildpack/util/format_duration'
 require 'java_buildpack/util/java_main_utils'
 require 'java_buildpack/component/versioned_dependency_component'
 require 'java_buildpack/component/java_opts'
+
 require 'java_buildpack/container/wls'
 require 'java_buildpack/container/wls/monitor_agent'
 require 'java_buildpack/container/wls/service_bindings_handler'

@@ -41,6 +41,7 @@ module JavaBuildpack
           setup_path
           add_jvm_args
           rename_server_instance
+
           "/bin/sh ./#{SETUP_ENV_SCRIPT}"
         end
 
@@ -91,16 +92,16 @@ module JavaBuildpack
         # (to listen on correct port, use user supplied jvm args)
         #  actual runtime execution occurs under /home/vcap
         def add_jvm_args
-          wls_pre_classpath  = "export PRE_CLASSPATH=\"#{@domain_home}/#{WLS_PRE_JARS_CACHE_DIR}/*\""
-          wls_post_classpath = "export POST_CLASSPATH=\"#{@domain_home}/#{WLS_POST_JARS_CACHE_DIR}/*\""
 
           # Load the app bundled configurations and re-configure as needed the JVM parameters for the Server VM
           log("JVM config passed via droplet java_opts : #{@droplet.java_opts}")
 
           JavaBuildpack::Container::Wls::JvmArgHelper.update(@droplet.java_opts)
           JavaBuildpack::Container::Wls::JvmArgHelper.add_wlx_server_mode(@droplet.java_opts, @start_in_wlx_mode)
-
           log("Consolidated Java Options for Server: #{@droplet.java_opts.join(' ')}")
+
+          wls_pre_classpath  = "export PRE_CLASSPATH=\"#{@domain_home}/#{WLS_PRE_JARS_CACHE_DIR}/*\""
+          wls_post_classpath = "export POST_CLASSPATH=\"#{@domain_home}/#{WLS_POST_JARS_CACHE_DIR}/*\""
 
           File.open(@application.root.to_s + '/' + SETUP_ENV_SCRIPT, 'a') do |f|
 

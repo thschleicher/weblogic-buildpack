@@ -23,14 +23,14 @@ version: 12.1.+
 repository_root: "http://12.1.1.1:7777/fileserver/wls"
 #repository_root: "https://s3.amazonaws.com/pcf-resources/wls"
 
-# preferAppConfig - Use the App bundled configs over the buildpack bundled configs?
+# prefer_app_config - Use the App bundled configs over the buildpack bundled configs?
 # If set to true, all configs and scripts packaged with the app bundle will be used for domain and server creation.
 # If set to false, the buildpack bundled configs and scripts would be used except for the domain name and jvm configs.
-# The domain name/credentials and the jvm configs would still be referred from the app bundle even if preferAppConfig is set to false.
+# The domain name/credentials and the jvm configs would still be referred from the app bundle even if prefer_app_config is set to false.
 # The rest of the configs and startup scripts would be pulled from buildpack
-preferAppConfig: true
+prefer_app_config: true
 
-# serverInWlxMode - Start the WLS Server in Limited Runtime footprint mode
+# server_in_wlx_mode - Start the WLS Server in Limited Runtime footprint mode
 # If true, this would disable JMS, EJB and JCA layers and result in smaller memory footprints.
 # If false, this would start the server in full blown mode - enabling JMS, JCA and EJBs.
-startInWlxMode: false
+start_in_wlx_mode: false

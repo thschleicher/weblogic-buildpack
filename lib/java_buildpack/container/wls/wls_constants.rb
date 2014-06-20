@@ -35,7 +35,7 @@ module JavaBuildpack
         PREFER_APP_CONFIG    = 'prefer_app_config'.freeze
 
         # Prefer App Bundled Config or Buildpack bundled Config
-        START_IN_WLX_MODE    = 'startInWlxMode'.freeze
+        START_IN_WLX_MODE    = 'start_in_wlx_mode'.freeze
 
         # Parent Location to save/store the application during deployment
         DOMAIN_APPS_FOLDER   = 'apps'.freeze

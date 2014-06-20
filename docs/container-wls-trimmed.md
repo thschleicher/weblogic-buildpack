@@ -16,8 +16,8 @@ It also manages some configurations used for the WLS Domain creation.
       --
         version: 12.1.+
         repository_root: "http://12.1.1.1:7777/fileserver/wls"
-        preferAppConfig: false
-        startInWlxMode: false
+        prefer_app_config: false
+        start_in_wlx_mode: false
 
       ```
 
@@ -31,7 +31,7 @@ It also manages some configurations used for the WLS Domain creation.
 
       Ensure the WebLogic Server binary is available at the location indicated by the index.yml referred by the weblogic repository_root
 
-  * The **preferAppConfig** flag allows overriding of the app bundle configurations with that of the buildpack bundle configurations.
+  * The **prefer_app_config** flag allows overriding of the app bundle configurations with that of the buildpack bundle configurations.
 
   The weblogic-buildpack can override the app bundled configuration for subsystems like jdbc, jms etc.
   The script for generating the domain would be pulled from the buildpack configuration (under resources/wls/script).
@@ -43,31 +43,31 @@ It also manages some configurations used for the WLS Domain creation.
         ```
         version: 12.1.+
         repository_root: http://12.1.1.1:7777/fileserver/wls
-        preferAppConfig: false
+        prefer_app_config: false
 
         ```
 
-  Setting the  **`preferAppConfig`** to **`true`** would imply the app bundled configs (under .wls of the App Root) would always be used for final domain creation.
+  Setting the  **`prefer_app_config`** to **`true`** would imply the app bundled configs (under .wls of the App Root) would always be used for final domain creation.
   Setting the parameter to **`false`** would imply the buildpack's configurations (under resources\wls\) have higher precedence over the app bundled configs and be used to configure the domain.
   The Application supplied domain config and jvm config file would be used for names of the domain, server, user credentials and jvm memory and command line settings.
   The script for the domain creation would however come from the buildpack.
 
-  * The **startInWlxMode** can be used to configure the server to run with a limited runtime footprint by avoiding certain subsystems like  EJB, JMS, JCA etc.
+  * The **start_in_wlx_mode** can be used to configure the server to run with a limited runtime footprint by avoiding certain subsystems like  EJB, JMS, JCA etc.
 
           ```
           version: 12.1.+
           repository_root: http://12.1.1.1:7777/fileserver/wls
-          preferAppConfig: false
-          startInWlxMode: false
+          prefer_app_config: false
+          start_in_wlx_mode: false
 
           ```
 
 
-  Setting the **startInWlxMode** to true would disable the EJB, JMS and JCA layers and reducing the overall memory footprint required by WLS Server.
+  Setting the **start_in_wlx_mode** to true would disable the EJB, JMS and JCA layers and reducing the overall memory footprint required by WLS Server.
   This is ideal for running pure web applications that don't use EJBs or messaging.
   If there are any EJBs or jms modules/destinations configured, the activation of the resources will result in errors at server startup.
 
-  Setting the **startInWlxMode** to false would allow the full blown server mode.
+  Setting the **start_in_wlx_mode** to false would allow the full blown server mode.
 
   Please refer to the WebLogic server documentation on the [limited footprint][] option for more details.
 

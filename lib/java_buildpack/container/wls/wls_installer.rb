@@ -103,8 +103,8 @@ module JavaBuildpack
 
           copy_templates
           log_and_print("Installing WebLogic at : #{@wls_install_path}")
-          update_install_response_template('/tmp/' + WLS_INSTALL_RESPONSE_FILE, WLS_INSTALL_PATH_TEMPLATE, @wls_install_path)
-          update_ora_inventory_template('/tmp/' + ORA_INSTALL_INVENTORY_FILE, WLS_ORA_INVENTORY_TEMPLATE, WLS_ORA_INV_INSTALL_PATH)
+          update_template('/tmp/' + WLS_INSTALL_RESPONSE_FILE, WLS_INSTALL_PATH_TEMPLATE, @wls_install_path)
+          update_template('/tmp/' + ORA_INSTALL_INVENTORY_FILE, WLS_ORA_INVENTORY_TEMPLATE, WLS_ORA_INV_INSTALL_PATH)
 
           # Check whether running on non-linux machine, to pick the correct JAVA_HOME location
           @java_home = check_and_reset_java_home_for_non_linux(@java_home)
@@ -162,16 +162,10 @@ module JavaBuildpack
           system "/bin/cp #{wls_install_response_file_src} /tmp;"
         end
 
-        def update_install_response_template(initial_response_template, pattern_from, pattern_to)
-          original = File.open(initial_response_template, 'r') { |f| f.read }
+        def update_template(template, pattern_from, pattern_to)
+          original = File.open(template, 'r') { |f| f.read }
           modified = original.gsub(/#{pattern_from}/, pattern_to)
-          File.open(initial_response_template, 'w') { |f| f.write modified }
-        end
-
-        def update_ora_inventory_template(ora_inventory_template, pattern_from, pattern_to)
-          original = File.open(ora_inventory_template, 'r') { |f| f.read }
-          modified = original.gsub(/#{pattern_from}/, pattern_to)
-          File.open(ora_inventory_template, 'w') { |f| f.write modified }
+          File.open(template, 'w') { |f| f.write modified }
         end
 
         def construct_install_command(install_binary_file)

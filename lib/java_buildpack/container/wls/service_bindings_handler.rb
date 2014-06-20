@@ -50,22 +50,19 @@ module JavaBuildpack
             log_and_print("Processing Service Binding of type: #{service_type} and definition : #{service_entry} ")
 
             if service_type[/cleardb/]
-              my_sql_config = service_entry
-              create_jdbc_service_definition(my_sql_config, output_props_file)
+              create_jdbc_service_definition(service_entry, output_props_file)
             elsif service_type[/elephantsql/]
-              postgres_config = service_entry
-              create_jdbc_service_definition(postgres_config, output_props_file)
+              create_jdbc_service_definition(service_entry, output_props_file)
             elsif service_type[/cloudamqp/]
-              amqp_config = service_entry
-              save_amqp_jms_service_definition(amqp_config, output_props_file)
+              save_amqp_jms_service_definition(service_entry, output_props_file)
             elsif service_type[/user-provided/]
               user_defined_service = service_entry
               if user_defined_service.to_s[/jdbc/]
                 # This appears to be of type JDBC
-                create_jdbc_service_definition(user_defined_service, output_props_file)
+                create_jdbc_service_definition(service_entry, output_props_file)
               elsif user_defined_service.to_s[/amqp/]
                 # This appears to be of type AMQP
-                save_amqp_jms_service_definition(user_defined_service, output_props_file)
+                save_amqp_jms_service_definition(service_entry, output_props_file)
               else
                 log_and_print("Unknown User defined Service bindings !!!... #{user_defined_service}")
               end
@@ -99,9 +96,6 @@ module JavaBuildpack
           elsif module_name[/security/]
             # Directly save the Security configuration
             save_base_service_definition(subsystem_config, output_props_file, 'Security')
-          # elsif module_name[/jvm/]
-            # Skip the JVM Configurations as the jvm wont be used by WLST for domain generation,
-            # only used by buildpack for generating the scripts
           else
             log_and_print("       Unknown subsystem, just saving it : #{subsystem_config}")
             # Dont know what subsystem this relates to, just save it as Section matching its service_name

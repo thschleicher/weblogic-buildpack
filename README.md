@@ -1,16 +1,19 @@
-# Cloud Foundry Java Buildpack
-[![Build Status](https://travis-ci.org/cloudfoundry/java-buildpack.svg?branch=master)](https://travis-ci.org/cloudfoundry/java-buildpack)
-[![Dependency Status](https://gemnasium.com/cloudfoundry/java-buildpack.svg)](https://gemnasium.com/cloudfoundry/java-buildpack)
-[![Code Climate](https://codeclimate.com/repos/5224adaec7f3a3415107004c/badges/bc49f7d7f8dfc47057c8/gpa.svg)](https://codeclimate.com/repos/5224adaec7f3a3415107004c/feed)
-[![Code Climate](https://codeclimate.com/repos/5224adaec7f3a3415107004c/badges/bc49f7d7f8dfc47057c8/coverage.svg)](https://codeclimate.com/repos/5224adaec7f3a3415107004c/feed)
+# Cloud Foundry WebLogic Buildpack
+[![Build Status](https://travis-ci.org/pivotal-cf/weblogic-buildpack.svg?branch=master)](https://travis-ci.org/pivotal-cf/weblogic-buildpack)
+[![Dependency Status](https://gemnasium.com/pivotal-cf/weblogic-buildpack.svg)](https://gemnasium.com/pivotal-cf/weblogic-buildpack)
+[![Code Climate](https://codeclimate.com/github/pivotal-cf/weblogic-buildpack.png)](https://codeclimate.com/github/pivotal-cf/weblogic-buildpack/feed)
 
-The `java-buildpack` is a [Cloud Foundry][] buildpack for running JVM-based applications.  It is designed to run many JVM-based applications ([Grails][], [Groovy][], Java Main, [Play Framework][], [Spring Boot][], and Servlet) with no additional configuration, but supports configuration of the standard components, and extension to add custom components.
+
+The `weblogic-buildpack` is a custom [Cloud Foundry] buildpack, based on a fork of the [Java-Buildpack][], for running JEE applications with WebLogic Server as container on Cloud Foundry.
+
+The [Java-Buildpack] itself is a [Cloud Foundry][] buildpack for running JVM-based applications.  It is designed to run many JVM-based applications ([Grails][], [Groovy][], Java Main, [Play Framework][], [Spring Boot][], and Servlet) with no additional configuration, but supports configuration of the standard components, and extension to add custom components.
+
 
 ## Usage
 To use this buildpack specify the URI of the repository when pushing an application to Cloud Foundry:
 
 ```bash
-cf push <APP-NAME> -p <ARTIFACT> -b https://github.com/cloudfoundry/java-buildpack.git
+cf push <APP-NAME> -p <ARTIFACT> -b https://github.com/pivotal-cf/weblogic-buildpack.git
 ```
 
 ## Examples
@@ -39,7 +42,7 @@ To learn how to configure various properties of the buildpack, follow the "Confi
 	* [Ratpack](docs/container-ratpack.md)
 	* [Spring Boot](docs/container-spring_boot.md)
 	* [Spring Boot CLI](docs/container-spring_boot_cli.md) ([Configuration](docs/container-spring_boot_cli.md#configuration))
-	* [Tomcat](docs/container-tomcat.md) ([Configuration](docs/container-tomcat.md#configuration))
+	* [WebLogic](docs/container-wls.md) ([Configuration](docs/container-wls.md#configuration))
 * Standard Frameworks
 	* [AppDynamics Agent](docs/framework-app_dynamics_agent.md) ([Configuration](docs/framework-app_dynamics_agent.md#configuration))
 	* [Java Options](docs/framework-java_opts.md) ([Configuration](docs/framework-java_opts.md#configuration))
@@ -79,13 +82,14 @@ The online package is a version of the buildpack that is as minimal as possible 
 bundle install
 bundle exec rake package
 ...
-Creating build/java-buildpack-cfd6b17.zip
+Creating build/weblogic-buildpack-cfd6b17.zip
 ```
 
 ### Offline Package
-The offline package is a version of the buildpack designed to run without access to a network.  It packages the latest version of each dependency (as configured in the [`config/` directory][]) and [disables `remote_downloads`][]. This package is about 180M in size.  To create the offline package, use the `OFFLINE=true` argument:
+The offline package is a version of the buildpack designed to run without access to a network.  It packages the latest version of each dependency (as configured in the [`config/` directory][]) and [disables `remote_downloads`][]. This package is about 380M in size.  To create the offline package, use the `OFFLINE=true` argument:
 
-```bash
+```
+bash
 bundle install
 bundle exec rake package OFFLINE=true
 ...
@@ -99,7 +103,7 @@ Keeping track of different versions of the buildpack can be difficult.  To help 
 bundle install
 bundle exec rake package VERSION=2.1
 ...
-Creating build/java-buildpack-2.1.zip
+Creating build/weblogic-buildpack-2.1.zip
 ```
 
 ## Running Tests
@@ -126,6 +130,7 @@ This buildpack is released under version 2.0 of the [Apache License][].
 [GitHub's forking functionality]: https://help.github.com/articles/fork-a-repo
 [Grails]: http://grails.org
 [Groovy]: http://groovy.codehaus.org
+[Java-Buildpack]: https://github.com/cloudfoundry/java-buildpack
 [Play Framework]: http://www.playframework.com
 [pull request]: https://help.github.com/articles/using-pull-requests
 [Pull requests]: http://help.github.com/send-pull-requests

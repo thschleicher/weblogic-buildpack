@@ -40,6 +40,18 @@ Finished triggering thread dumps for App: 'wls12c', across 1 instances
 
 The trigger script goes against each individual running application instance rather than the very first running instance as `cf files` does by default.
 
+# Use of Monitoring Scripts with non-WebLogic Buildpack
+
+Its possible to use the monitoring agent scripts with any Java Applications without using the WebLogic Buildpack.
+If the target application is of type Java Web App (deployed as WAR), follow the steps to add trigger actions:
+ * Copy the [kickOffMonitoring JSP](../resources/wls/monitoring/kickOffMonitoring.jsp) page into the Web Application top folder.
+ * Copy the [monitoring jar](../resources/wls/monitoring/monitoring.jar) file into the Web Application's WEB-INF/lib folder.
+ * Recreate the Java Web Application `war` or `WAR` file with the two additions (jsp page and the jar library).
+ * Push the updated application using `cf push` command to apply the changes.
+ * Access the kickOffMonitoring.jsp page on the application which will kick start the monitoring agents.
+ * Extract the bundled client trigger/capture scripts (within the monitoring.jar file) and use those to trigger actions or capture the dumps as needed.
+
+Similar approach can also be used with Ruby or other language based applications to kick off the actual monitoring agent scripts execution from an application and then capture the data as needed.
 
 # Application Container Process Tree
 

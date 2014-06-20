@@ -3,7 +3,7 @@
   <component name="ModuleRunConfigurationManager">
     <configuration default="false" name="All Tests" type="RSpecRunConfigurationType" factoryName="RSpec" singleton="true">
       <predefined_log_file id="RUBY_RSPEC" enabled="true" />
-      <module name="java-buildpack" />
+      <module name="weblogic-buildpack" />
       <RSPEC_RUN_CONFIG_SETTINGS_ID NAME="RUBY_ARGS" VALUE="-e $stdout.sync=true;$stderr.sync=true;load($0=ARGV.shift)" />
       <RSPEC_RUN_CONFIG_SETTINGS_ID NAME="WORK DIR" VALUE="$MODULE_DIR$" />
       <RSPEC_RUN_CONFIG_SETTINGS_ID NAME="SHOULD_USE_SDK" VALUE="false" />
@@ -40,7 +40,7 @@
     </configuration>
     <configuration default="false" name="Without Integration Tests" type="RSpecRunConfigurationType" factoryName="RSpec" singleton="true">
       <predefined_log_file id="RUBY_RSPEC" enabled="true" />
-      <module name="java-buildpack" />
+      <module name="weblogic-buildpack" />
       <RSPEC_RUN_CONFIG_SETTINGS_ID NAME="RUBY_ARGS" VALUE="-e $stdout.sync=true;$stderr.sync=true;load($0=ARGV.shift)" />
       <RSPEC_RUN_CONFIG_SETTINGS_ID NAME="WORK DIR" VALUE="$MODULE_DIR$" />
       <RSPEC_RUN_CONFIG_SETTINGS_ID NAME="SHOULD_USE_SDK" VALUE="false" />
@@ -77,7 +77,7 @@
     </configuration>
     <configuration default="false" name="compile_spec" type="RSpecRunConfigurationType" factoryName="RSpec" temporary="true">
       <predefined_log_file id="RUBY_RSPEC" enabled="true" />
-      <module name="java-buildpack" />
+      <module name="weblogic-buildpack" />
       <RSPEC_RUN_CONFIG_SETTINGS_ID NAME="RUBY_ARGS" VALUE="-e $stdout.sync=true;$stderr.sync=true;load($0=ARGV.shift)" />
       <RSPEC_RUN_CONFIG_SETTINGS_ID NAME="WORK DIR" VALUE="$MODULE_DIR$" />
       <RSPEC_RUN_CONFIG_SETTINGS_ID NAME="SHOULD_USE_SDK" VALUE="false" />
@@ -114,7 +114,7 @@
     </configuration>
     <configuration default="false" name="download_cache_spec" type="RSpecRunConfigurationType" factoryName="RSpec" temporary="true">
       <predefined_log_file id="RUBY_RSPEC" enabled="true" />
-      <module name="java-buildpack" />
+      <module name="weblogic-buildpack" />
       <RSPEC_RUN_CONFIG_SETTINGS_ID NAME="RUBY_ARGS" VALUE="-e $stdout.sync=true;$stderr.sync=true;load($0=ARGV.shift)" />
       <RSPEC_RUN_CONFIG_SETTINGS_ID NAME="WORK DIR" VALUE="$MODULE_DIR$" />
       <RSPEC_RUN_CONFIG_SETTINGS_ID NAME="SHOULD_USE_SDK" VALUE="false" />
@@ -151,7 +151,7 @@
     </configuration>
     <configuration default="false" name="groovy_spec" type="RSpecRunConfigurationType" factoryName="RSpec" temporary="true">
       <predefined_log_file id="RUBY_RSPEC" enabled="true" />
-      <module name="java-buildpack" />
+      <module name="weblogic-buildpack" />
       <RSPEC_RUN_CONFIG_SETTINGS_ID NAME="RUBY_ARGS" VALUE="-e $stdout.sync=true;$stderr.sync=true;load($0=ARGV.shift)" />
       <RSPEC_RUN_CONFIG_SETTINGS_ID NAME="WORK DIR" VALUE="$MODULE_DIR$" />
       <RSPEC_RUN_CONFIG_SETTINGS_ID NAME="SHOULD_USE_SDK" VALUE="false" />
@@ -186,7 +186,7 @@
     </configuration>
     <configuration default="false" name="spring_boot_cli_spec" type="RSpecRunConfigurationType" factoryName="RSpec" temporary="true">
       <predefined_log_file id="RUBY_RSPEC" enabled="true" />
-      <module name="java-buildpack" />
+      <module name="weblogic-buildpack" />
       <RSPEC_RUN_CONFIG_SETTINGS_ID NAME="RUBY_ARGS" VALUE="-e $stdout.sync=true;$stderr.sync=true;load($0=ARGV.shift)" />
       <RSPEC_RUN_CONFIG_SETTINGS_ID NAME="WORK DIR" VALUE="$MODULE_DIR$" />
       <RSPEC_RUN_CONFIG_SETTINGS_ID NAME="SHOULD_USE_SDK" VALUE="false" />
@@ -219,9 +219,9 @@
       <ConfigurationWrapper RunnerId="RubyRunner" />
       <method />
     </configuration>
-    <configuration default="false" name="Run spec 'postgresql_jdbc_spec': java-buildpack" type="RSpecRunConfigurationType" factoryName="RSpec" temporary="true">
+    <configuration default="false" name="Run spec 'postgresql_jdbc_spec': weblogic-buildpack" type="RSpecRunConfigurationType" factoryName="RSpec" temporary="true">
       <predefined_log_file id="RUBY_RSPEC" enabled="true" />
-      <module name="java-buildpack" />
+      <module name="weblogic-buildpack" />
       <RSPEC_RUN_CONFIG_SETTINGS_ID NAME="RUBY_ARGS" VALUE="-e $stdout.sync=true;$stderr.sync=true;load($0=ARGV.shift)" />
       <RSPEC_RUN_CONFIG_SETTINGS_ID NAME="WORK DIR" VALUE="$MODULE_DIR$" />
       <RSPEC_RUN_CONFIG_SETTINGS_ID NAME="SHOULD_USE_SDK" VALUE="false" />
@@ -271,7 +271,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" scope="PROVIDED" name="addressable (v2.3.6, rbenv: 1.9.3-p545) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="ast (v2.0.0, rbenv: 1.9.3-p545) [gem]" level="application" />
-    <orderEntry type="library" scope="PROVIDED" name="bundler (v1.6.2, rbenv: 1.9.3-p545) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="bundler (v1.6.3, rbenv: 1.9.3-p545) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="codeclimate-test-reporter (v0.3.0, rbenv: 1.9.3-p545) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="crack (v0.4.2, rbenv: 1.9.3-p545) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="debugger-ruby_core_source (v1.3.2, rbenv: 1.9.3-p545) [gem]" level="application" />

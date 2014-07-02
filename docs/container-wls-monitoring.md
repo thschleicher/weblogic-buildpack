@@ -6,17 +6,12 @@ There are two actors handling the orchestration of the remote trigger actions: o
 The application container will be configured to spawn off shell scripts (running in background) that is able to monitor for access modification timestamp of designated files.
 This script kickoff is handled by the WebLogic Buildpack release step (that starts the application or its container).
 
-```
+|Dump Action    |         Script       |        Designated Target File
+----------------|:--------------------:|---------------------------
+|Heap         |    dumpHeapAgent.sh   |    /home/vcap/tmp/dumpHeap
+|Stats        |    dumpStatsAgent.sh  |    /home/vcap/tmp/dumpStats
+|Thread       |    dumpThreadAgent.sh |    /home/vcap/tmp/dumpThread
 
-Dump Action           Script             Designated Target File
-
-Heap             dumpHeapAgent.sh       /home/vcap/tmp/dumpHeap
-
-Stats            dumpStatsAgent.sh      /home/vcap/tmp/dumpStats
-
-Thread           dumpThreadAgent.sh     /home/vcap/tmp/dumpThread
-
-```
 
 # Triggers
 
@@ -166,12 +161,20 @@ Heap Dumps generated for Java Applications can be downloaded remotely using the 
 cf curl cli version prior to 6.1.2 adds a newline character as part of the final output, the heap dump can appear corrupted when reading it with Java Heap Analyzers like Eclipse MAT tool. So, the script automatically stripts off the last byte from the saved output which can take sometime to complete.
 Version 6.1.2 and newer allows --output option to save the output as a file and does not require this stripping of the last unneeded byte.
 
+# Limitations of openjdk
+
+* The default java buildpack uses openjdk rather than Oracle HotSpot Jre. Unfortunately, the openjdk version of the jvm does not contain jmap or jstack utilit
+  * No heap dump generation is possible due to absence of jmap.
+  * The thread dumps cannot be redirected to a separate log file in the absence of jstack. One would have to use kill -3 signal to trigger thread dumps which
+  * Use cf logs after issuing thread dumps or cf files to retreive the contents of the stdout.log file that would have the generated thread dumps.
+
 # Default Actions
 
 The scripts bundled with the buildpack are generic enough that it can also be used by Ruby Applications as well as non-WebLogic Server targetted Java Applications.
 
-* Java Applications would use jstack for thread dump generation. 5 Thread dumps would be collected at 5 second interval on each trigger action.
+* Java Applications would use jstack for thread dump generation. Five dumps would be collected at 5 second intervals on each trigger action.
   It would use jmap to generate heap dumps.
-* Ruby Applications would require x-ray gem to capture thread dumps. There is no jmap equivalent to generate heap dumps.
+* Oracle HotSpot Jre is recommended for usage with the buildpack, as the openjdk version of the jvm does not contain jmap or jstack utilities.
+* Ruby Applications would require x-ray gem to capture thread dumps. There is no jmap equivalent to generate heap dumps for Ruby.
 * The Stats script collections top, vmstat, mpstat, iostat, ps and environment log information as part of the dumpStats action.
 

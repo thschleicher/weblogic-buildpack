@@ -520,7 +520,7 @@ One can also modify the domain creation script to lock down or block access to t
 The WebLogic Buildpack kicks off background scripts that can pick trigger signals received via cf files in form of access of a designated target file to kick off the data collection.
 The sample scripts are packaged under the resources/wls/monitoring folder.
 
-Check the [Remote Diagnostics for Applications][] blog post for more details. Also refer to the [Monitoring](docs/container-wls-monitoring.md) documentation.
+Check the [Remote Diagnostics for Applications][] blog post for more details. Also refer to the [Monitoring](container-wls-monitoring.md) documentation.
 Sample bundled scripts (under resources/wls/monitoring) can be used to trigger thread or heap dumps as well as collect system statistics/metrics across all instances of the deployed application.
 
 # Managing JVM Arguments

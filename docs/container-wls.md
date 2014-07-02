@@ -276,14 +276,14 @@ Please refer to [Overriding App Bundled Configuration](#overriding-app-bundled-c
 
        ```
 
-   * Domain configuration (Required)
+   * Domain configuration (non-mandatory)
    
      The **`.wls`** folder should contain a single yaml file that contains information about the target domain, server name, user credentials etc.
      There is a sample [Domain config ](resources/wls/wlsDomainConfig.yml) bundled within the buildpack that can be used as a template to modify/extend the resulting domain.
 	 
 	 Refer to [domain](docs/container-wls-domain.md) for more details.
 	 
-   * Scripts (Required)
+   * Scripts (non-mandatory)
    
      There can be a **`script`** folder within **`.wls`** with a WLST jython script, for generating the domain
      There is a sample [Domain creation script](resources/wls/script/wlsDomainCreate.py) bundled within the buildpack that can be used as a template to modify/extend the resulting domain.
@@ -523,6 +523,16 @@ The sample scripts are packaged under the resources/wls/monitoring folder.
 Check the [Remote Diagnostics for Applications][] blog post for more details. Also refer to the [Monitoring](docs/container-wls-monitoring.md) documentation.
 Sample bundled scripts (under resources/wls/monitoring) can be used to trigger thread or heap dumps as well as collect system statistics/metrics across all instances of the deployed application.
 
+# Managing JVM Arguments
+Users can add additional jvm arguments by setting the JAVA_OPTS environment variable via the cf set-env cli command. 
+Note: Ensure you use the latest version of cf cli to set the environment variables.
+
+```
+$ cf se test-app JAVA_OPTS '-verbose:gc -Djava.net.preferIPv4=true -Dmy.application.name=test-app'
+Setting env variable 'JAVA_OPTS' to '-verbose:gc  -Djava.net.preferIPv4=true -Dmy.application.name=test-app' for app test-app in org sabha / space sabha as admin...
+OK
+TIP: Use 'cf push' to ensure your env variable changes take effect
+```
 
 ## Configuration and Extension
 

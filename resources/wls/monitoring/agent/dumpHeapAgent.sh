@@ -72,12 +72,17 @@ function setJavaTools()
 {
    export SERVER_PID=`ps -ef | grep "bin/java" | grep -v "grep" | tail -1 | awk '{ print $2 }' `
    export DUMP_TOOL=`find / -name jmap  2>/dev/null`
+   if [ "$DUMP_TOOL" == "" ]; then
+     echo "ERROR! No jmap found...!!"
+   fi
 }
 
 function buildJavaDumpCommand()
 {
-   export DUMP_COMMAND="$DUMP_TOOL -dump:live,format=b,file=$DUMP_FOLDER/$day/${APP_NAME}.${SERVER_PID}.${day}.${curTimestamp}.hprof $SERVER_PID"
-   echo "DUMP_COMMAND is $DUMP_COMMAND"
+   if [ "$DUMP_TOOL" != "" ]; then
+     export DUMP_COMMAND="$DUMP_TOOL -dump:live,format=b,file=$DUMP_FOLDER/$day/${APP_NAME}.${SERVER_PID}.${day}.${curTimestamp}.hprof $SERVER_PID"
+     echo "DUMP_COMMAND is $DUMP_COMMAND"
+   fi
 }
 
 function setRubyTools()

@@ -23,7 +23,7 @@ HEAP_DUMP_URL=tmp/dumpHeap
 STATS_DUMP_URL=tmp/dumpStats
 THREAD_DUMP_URL=tmp/dumpThread
 
-tmpFile=`mktemp -t cfApp.${appName}.xxxx`
+tmpFile=`mktemp -t cfApp.${appName}.XXXX`
 #echo TempFile is $tmpFile
 
 

@@ -11,7 +11,7 @@ DUMP_FOLDER=dumps
 
 
 #Check version of cf cli
-#Version 6.1.2+ allows --output option to save the output to a file
+#Version newer than 6.1.2 allows --output option to save the output to a file
 # and also does not carry any extra bytes (newline...)
 #Otherwise would have to redirect output and then trim extra byte for Heap Dump hprof files
 
@@ -21,7 +21,7 @@ STRIP_BYTE_FROM_BINARY=true
 function checkCFVersion()
 {
   cf_version=`cf -v | awk '{print $3 }' | sed -e 's/-.*$//;s/\.//g'`
-  if [ "$cf_version" -ge 612 ]; then
+  if [ "$cf_version" -gt 612 ]; then
     # We are good to use the --output option to save the files directly
     USE_REDIRECT=false
     STRIP_BYTE_FROM_BINARY=false
@@ -159,7 +159,7 @@ targetFilePath=$2
 APP_URL_PREFIX=/${CF_API_VERSION}/apps
 DUMP_URL=/files/$DUMP_FOLDER/$targetFilePath
 
-tmpFile=`mktemp -t cfApp.${appName}.xxxx`
+tmpFile=`mktemp -t cfApp.${appName}.XXXX`
 
 #echo TempFile is $tmpFile
 

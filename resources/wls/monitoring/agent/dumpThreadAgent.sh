@@ -78,6 +78,10 @@ function setJavaTools()
 {
    export SERVER_PID=`ps -ef | grep "bin/java" | grep -v "grep" | tail -1 | awk '{ print $2 }' `
    export DUMP_TOOL=`find / -name jstack  2>/dev/null`
+   if [ "$DUMP_TOOL" == "" ]; then
+     echo "ERROR! No jstack found...!!, going to use kill -3"
+     DUMP_TOOL="kill -3 "
+   fi
    export DUMP_COMMAND="$DUMP_TOOL $SERVER_PID"
 
 }

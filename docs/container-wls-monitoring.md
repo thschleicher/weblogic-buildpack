@@ -161,9 +161,9 @@ Heap Dumps generated for Java Applications can be downloaded remotely using the 
 cf curl cli version prior to 6.1.2 adds a newline character as part of the final output, the heap dump can appear corrupted when reading it with Java Heap Analyzers like Eclipse MAT tool. So, the script automatically stripts off the last byte from the saved output which can take sometime to complete.
 Version 6.1.2 and newer allows --output option to save the output as a file and does not require this stripping of the last unneeded byte.
 
-# Limitations of openjdk
+# Limitations of Openjdk
 
-* The default java buildpack uses openjdk rather than Oracle HotSpot Jre. Unfortunately, the openjdk version of the jvm does not contain jmap or jstack utilit
+* The default Java Buildpack uses Openjdk rather than Oracle HotSpot Jre. Unfortunately, the openjdk version of the jvm does not contain jmap or jstack utility
   * No heap dump generation is possible due to absence of jmap.
   * The thread dumps cannot be redirected to a separate log file in the absence of jstack. One would have to use kill -3 signal to trigger thread dumps which
   * Use cf logs after issuing thread dumps or cf files to retreive the contents of the stdout.log file that would have the generated thread dumps.
@@ -174,7 +174,7 @@ The scripts bundled with the buildpack are generic enough that it can also be us
 
 * Java Applications would use jstack for thread dump generation. Five dumps would be collected at 5 second intervals on each trigger action.
   It would use jmap to generate heap dumps.
-* Oracle HotSpot Jre is recommended for usage with the buildpack, as the openjdk version of the jvm does not contain jmap or jstack utilities.
+* Oracle HotSpot Jre is recommended for usage with the buildpack, as the Openjdk version of the jvm does not contain jmap or jstack utilities.
 * Ruby Applications would require x-ray gem to capture thread dumps. There is no jmap equivalent to generate heap dumps for Ruby.
 * The Stats script collections top, vmstat, mpstat, iostat, ps and environment log information as part of the dumpStats action.
 

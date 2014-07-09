@@ -15,6 +15,7 @@
 # limitations under the License.
 
 require 'java_buildpack/container/wls/jvm_arg_helper'
+require 'yaml'
 
 module JavaBuildpack
   module Container
@@ -38,7 +39,9 @@ module JavaBuildpack
         # 2. Update java vm arguments
         # 3. Modify the server name using instance index
         def setup
+
           setup_path
+          save_application_details
           add_jvm_args
           rename_server_instance
 
@@ -61,7 +64,7 @@ module JavaBuildpack
           File.open(@application.root.to_s + '/' + SETUP_ENV_SCRIPT, 'w') do |f|
 
             f.puts '#!/bin/sh                                                                                                          '
-            f.puts '# There are 3 things handled by this script                                                                        '
+            f.puts '# There are 4 things handled by this script                                                                        '
             f.puts '                                                                                                                   '
             f.puts '# 1. Create links to mimic staging env and update scripts with jvm options                                         '
             f.puts '# The Java Buildpack for WLS creates complete domain structure and other linkages during staging at                '
@@ -78,6 +81,26 @@ module JavaBuildpack
             f.puts '   /bin/ln -s `pwd` /tmp/staged/app                                                                                '
             f.puts 'fi;                                                                                                                '
             f.puts '                                                                                                                   '
+            f.puts '                                                                                                                   '
+          end
+        end
+
+        def save_application_details
+          File.open(@application.root.to_s + '/' + SETUP_ENV_SCRIPT, 'a') do |f|
+            f.puts '                                                                                                                   '
+            f.puts '# 2. Save the application details - application name and instance index from VCAP_APPLICATION env variable         '
+            f.puts 'APP_NAME=`env | grep VCAP_APPLICATION | sed -e \'s/,\"/&\n\"/g;s/\"//g;s/,//g\'| grep application_name             ' \
+                                          '| cut -d: -f2`                                                                              '
+            f.puts 'INSTANCE_INDEX=`env | grep VCAP_APPLICATION  | sed -e \'s/,\"/&\n\"/g;s/\"//g;s/,//g\'| grep instance_index        ' \
+                                          '| cut -d: -f2`                                                                              '
+            f.puts '# The above script will fail on Mac Darwin OS, set Instance Index to 0 when we are not getting numeric value match '
+            f.puts 'if ! [ "$INSTANCE_INDEX" -eq "$INSTANCE_INDEX" ] 2>/dev/null; then                                                 '
+            f.puts '  INSTANCE_INDEX=0                                                                                                 '
+            f.puts '  echo Instance index set to 0                                                                                     '
+            f.puts 'fi                                                                                                                 '
+            f.puts '# Additional jvm arguments                                                                                         '
+            f.puts 'IP_ADDR=`ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk \'{print $2}\' | cut -d: -f2`                     '
+            f.puts 'export APP_ID_ARGS=" -Dapplication.name=${APP_NAME} -Dapplication.instance-index=${INSTANCE_INDEX} -Dapplication.ipaddr=${IP_ADDR} " '
             f.puts '                                                                                                                   '
           end
         end
@@ -100,15 +123,16 @@ module JavaBuildpack
           JavaBuildpack::Container::Wls::JvmArgHelper.add_wlx_server_mode(@droplet.java_opts, @start_in_wlx_mode)
           log("Consolidated Java Options for Server: #{@droplet.java_opts.join(' ')}")
 
-          wls_pre_classpath  = "export PRE_CLASSPATH=\"#{@domain_home}/#{WLS_PRE_JARS_CACHE_DIR}/*\""
-          wls_post_classpath = "export POST_CLASSPATH=\"#{@domain_home}/#{WLS_POST_JARS_CACHE_DIR}/*\""
+          wls_pre_classpath  = "export PRE_CLASSPATH='#{@domain_home}/#{WLS_PRE_JARS_CACHE_DIR}/*'"
+          wls_post_classpath = "export POST_CLASSPATH='#{@domain_home}/#{WLS_POST_JARS_CACHE_DIR}/*'"
 
           File.open(@application.root.to_s + '/' + SETUP_ENV_SCRIPT, 'a') do |f|
 
-            f.puts '# 2. Add JVM Arguments by editing the startWebLogic.sh script                                                      '
-            f.puts '#Export User defined memory, jvm settings, pre/post classpaths inside the startWebLogic.sh                         '
-            f.puts "sed -i.bak 's#^DOMAIN_HOME#export USER_MEM_ARGS=\"#{@droplet.java_opts.join(' ')} \";                                \
-                                    \\n#{wls_pre_classpath}\\n#{wls_post_classpath}\\n&#1' #{@domain_home}/startWebLogic.sh            "
+            f.puts '# 3. Add JVM Arguments by editing the startWebLogic.sh script                                                      '
+            f.puts '# Export User defined memory, jvm settings, pre/post classpaths inside the startWebLogic.sh                        '
+            f.puts '# Need to use \\" with sed to expand the environment variables                                                     '
+            f.puts "sed -i.bak \"s#^DOMAIN_HOME#\\n#{wls_pre_classpath}\\n#{wls_post_classpath}\\n&#1\" #{@domain_home}/startWebLogic.sh"
+            f.puts "sed -i.bak \"s#^DOMAIN_HOME#export USER_MEM_ARGS='${APP_ID_ARGS} #{@droplet.java_opts.join(' ')} '\\n&#1\" #{@domain_home}/startWebLogic.sh "
             f.puts '                                                                                                                   '
           end
         end
@@ -117,15 +141,7 @@ module JavaBuildpack
         def rename_server_instance
           File.open(@application.root.to_s + '/' + SETUP_ENV_SCRIPT, 'a') do |f|
             f.puts '                                                                                                                   '
-            f.puts '# 3. Server renaming using index to differentiate server instances                                                 '
-            f.puts '# Modify the server name to include the instance index in the generated domain                                     '
-            f.puts 'INSTANCE_INDEX=`env | grep VCAP_APP |env | grep VCA | sed -e \'s/,\"/&\n\"/g;s/\"//g;s/,//g\'| grep instance_index ' \
-                                          '| cut -d: -f2`                                                                              '
-            f.puts '# The above script will fail on Mac Darwin OS, set Instance Index to 0 when we are not getting numeric value match '
-            f.puts 'if ! [ "$INSTANCE_INDEX" -eq "$INSTANCE_INDEX" ] 2>/dev/null; then                                                 '
-            f.puts '  INSTANCE_INDEX=0                                                                                                 '
-            f.puts '  echo Instance index set to 0                                                                                     '
-            f.puts 'fi                                                                                                                 '
+            f.puts '# 4. Server renaming using index to differentiate server instances                                                 '
             f.puts '                                                                                                                   '
             f.puts "SERVER_NAME_TAG=#{@server_name}                                                                                    "
             f.puts 'NEW_SERVER_NAME_TAG=${SERVER_NAME_TAG}-${INSTANCE_INDEX}                                                           '

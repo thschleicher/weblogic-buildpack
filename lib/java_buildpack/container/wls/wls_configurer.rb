@@ -158,6 +158,7 @@ module JavaBuildpack
           wlst_script = Dir.glob("#{@wls_install}" + '/**/wlst.sh')[0]
           system "/bin/chmod +x #{wlst_script}; export JAVA_HOME=#{@java_home};" \
                                             " export MW_HOME=#{@wls_install};" \
+                                            " /bin/sed -i.bak 's#JVM_ARGS=\"#JVM_ARGS=\" -Djava.security.egd=file:/dev/./urandom #g' #{wlst_script}; "\
                                             " #{wlst_script}  #{@wls_domain_config_script} #{wls_complete_domain_configs_props}" \
                                               " > #{@wls_sandbox_root}/wlstDomainCreation.log"
 

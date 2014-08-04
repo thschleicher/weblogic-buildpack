@@ -627,6 +627,8 @@ Cloning into '/tmp/buildpacks/weblogic-buildpack'...
 
 ```
 
+* If the buildpack appears to be stuck or hung at Domain creation (configuration/install completed but not the domain creation), then its possible the WLST script is blocked on random number generation for the Domain security credentials. Upgrade to the latest buildpack version which uses urandom to generate the secure random numbers.
+
 * Additional Buildpack logging on failures
 
  If the buildpack fails during detect or other phases, enable `JBP_LOG_LEVEL` to `debug` using `cf set-env` command (`cf set-env app_name JBP_LOG_LEVEL debug`).

@@ -393,15 +393,9 @@ def deployApp(appName, appSrcPath, targetServer):
 # Create a domain from the weblogic domain template.
 #==========================================
 def createDomain(domainEnvConfig):
-<<<<<<< HEAD
-
   baseWLSTemplate = WL_HOME +'/common/templates/*/wls.jar'
   if 'wlsDomainTemplateJar' in domainEnvConfig:
     baseWLSTemplate = domainEnvConfig.get('wlsDomainTemplateJar')
-
-=======
-  baseWLSTemplate = WL_HOME +'/common/templates/wls/wls.jar'
->>>>>>> Forked off from CF Java-buildpack and resubmitted weblogic container
   print 'Reading WLS template from : ' + baseWLSTemplate
   readTemplate(baseWLSTemplate)
   cd('Servers/AdminServer')

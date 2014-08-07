@@ -19,8 +19,7 @@
 # e.g.  repository_root: "http://example.com/oracle-wls/{platform}/{architecture}"
 
 version: 12.1.+
-repository_root: "http://buildpack:shaozhen@buildpack.felixding.com/weblogic"
-#repository_root: "http://12.1.1.1:7777/fileserver/wls"
+repository_root: "http://12.1.1.1:7777/fileserver/wls"
 #repository_root: "https://s3.amazonaws.com/pcf-resources/wls"
 
 # prefer_app_config - Use the App bundled configs over the buildpack bundled configs?

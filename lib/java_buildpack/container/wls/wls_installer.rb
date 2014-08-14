@@ -53,13 +53,23 @@ module JavaBuildpack
 
         private
 
+        # Required during Install...
+        # Files required for installing from a jar in silent mode
+        ORA_INSTALL_INVENTORY_FILE = 'oraInst.loc'.freeze
+        WLS_INSTALL_RESPONSE_FILE  = 'installResponseFile'.freeze
+
+        # keyword to change to point to actual wlsInstall in response file
+        WLS_INSTALL_PATH_TEMPLATE  = 'WEBLOGIC_INSTALL_PATH'.freeze
+        WLS_ORA_INVENTORY_TEMPLATE = 'ORACLE_INVENTORY_INSTALL_PATH'.freeze
+        WLS_ORA_INV_INSTALL_PATH   = '/tmp/wlsOraInstallInventory'.freeze
+
         def install_using_zip(zipFile)
 
-          log_and_print('Installing WebLogic from downloaded zip file using config script!')
+          log_and_print("Installing WebLogic from downloaded zip file using config script under #{@wls_sandbox_root}!")
 
           system "/usr/bin/unzip #{zipFile} -d #{@wls_sandbox_root} >/dev/null"
 
-          java_binary      = Dir.glob("#{@wls_sandbox_root}" + '/../**/' + JAVA_BINARY)[0]
+          java_binary      = Dir.glob("#{@droplet.root}" + '/**/' + JAVA_BINARY, File::FNM_DOTMATCH)[0]
           configure_script = Dir.glob("#{@wls_sandbox_root}" + '/**/' + WLS_CONFIGURE_SCRIPT)[0]
 
           @java_home = File.dirname(java_binary) + '/..'
@@ -75,9 +85,12 @@ module JavaBuildpack
           @java_home = check_and_reset_java_home_for_non_linux(@java_home)
           save_middleware_home_in_configure_script(configure_script, @wls_install_path, @java_home)
 
-          system "export JAVA_HOME=#{@java_home}; "                   \
-                        " export MW_HOME=#{@wls_install_path}; "                 \
-                        " echo no |  #{configure_script} > #{@wls_sandbox_root}/install.log"
+          command = "export JAVA_HOME=#{@java_home}; "
+          command << " export MW_HOME=#{@wls_install_path}; "
+          command << " echo no |  #{configure_script} > #{@wls_sandbox_root}/install.log"
+
+          system "#{command}"
+
           log_and_print("Finished running install, output saved at: #{@wls_sandbox_root}/install.log")
 
           {
@@ -90,7 +103,7 @@ module JavaBuildpack
 
           print_warnings
 
-          java_binary = Dir.glob("#{@wls_sandbox_root}" + '/../**/' + JAVA_BINARY)[0]
+          java_binary      = Dir.glob("#{@droplet.root}" + '/**/' + JAVA_BINARY, File::FNM_DOTMATCH)[0]
           @java_home  = File.dirname(java_binary) + '/..'
 
           ## The jar install of weblogic does not like hidden directories in its install path like .java-buildpack
@@ -99,7 +112,9 @@ module JavaBuildpack
           ## Provide a different directory name. installation Failed. Exiting installation due to data validation failure.
           ## The Oracle Universal Installer failed.  Exiting.
           ## So, the <APP>/.java-buildpack/weblogic/wlsInstall path wont work here; have to create the wlsInstall outside of the .java-buildpack, just under the app location.
-          @wls_install_path = File.absolute_path("#{@wls_sandbox_root}/../../wlsInstall")
+          # @wls_install_path = File.absolute_path("#{@wls_sandbox_root}/../../wlsInstall")
+          # Now installing under the App/WEB-INF/wlsInstall or App/APP-INF/wlsInstall folder
+          @wls_install_path = @wls_sandbox_root.to_s
 
           copy_templates
           log_and_print("Installing WebLogic at : #{@wls_install_path}")
@@ -112,7 +127,7 @@ module JavaBuildpack
           install_command = construct_install_command(install_binary_file)
 
           log_and_print("Starting WebLogic Install with command:  #{install_command}")
-          system "#{install_command} > #{@wls_sandbox_root}/install.log"
+          system " #{install_command} > /tmp/install.log; mv /tmp/install.log #{@wls_sandbox_root};"
           log("Finished running install, output saved at: #{@wls_sandbox_root}/install.log")
 
           {
@@ -140,10 +155,10 @@ module JavaBuildpack
           bourne_shell_script_marker = '#!/bin/sh'
           bash_shell_script_marker   = '#!/bin/bash'
 
-          new_variables_insert = "#{bash_shell_script_marker}\n" \
-                                "#{updated_java_home_entry}\n" \
-                                "#{updated_bea_home_entry}\n" \
-                                "#{updated_middleware_home_entry}\n"
+          new_variables_insert = "#{bash_shell_script_marker}\n"
+          new_variables_insert << "#{updated_java_home_entry}\n"
+          new_variables_insert << "#{updated_bea_home_entry}\n"
+          new_variables_insert << "#{updated_middleware_home_entry}\n"
 
           modified = original.gsub(/#{bourne_shell_script_marker}/, new_variables_insert)
 
@@ -156,10 +171,12 @@ module JavaBuildpack
           ora_install_inventory_src     = @config_cache_root + ORA_INSTALL_INVENTORY_FILE
           wls_install_response_file_src = @config_cache_root + WLS_INSTALL_RESPONSE_FILE
 
-          system "rm -rf #{WLS_ORA_INV_INSTALL_PATH} 2>/dev/null"
-          system "rm -rf #{@wls_install_path} 2>/dev/null"
-          system "/bin/cp #{ora_install_inventory_src} /tmp"
-          system "/bin/cp #{wls_install_response_file_src} /tmp;"
+          command = "rm -rf #{WLS_ORA_INV_INSTALL_PATH} 2>/dev/null;"
+          command << "rm -rf #{@wls_install_path} 2>/dev/null;"
+          command << "/bin/cp #{ora_install_inventory_src} /tmp;"
+          command << "/bin/cp #{wls_install_response_file_src} /tmp"
+
+          system "#{command}; cat /tmp/installResponseFile"
         end
 
         def update_template(template, pattern_from, pattern_to)
@@ -182,12 +199,15 @@ module JavaBuildpack
             install_command_args = " #{new_binary_path} -J-Djava.security.egd=file:/dev/./urandom "
           end
 
-          install_pre_args = "export JAVA_HOME=#{@java_home}; rm #{newBinaryPath} 2>/dev/null; "        \
-                                      " ln -s #{install_binary_file} #{new_binary_path}; "             \
-                                      " mkdir #{@wls_install_path}; chmod +x #{new_binary_path}; "
+          ora_install_inventory_target     = '/tmp/' + ORA_INSTALL_INVENTORY_FILE
+          wls_install_response_file_target = '/tmp/' + WLS_INSTALL_RESPONSE_FILE
 
-          install_post_args = " -silent -responseFile #{wls_install_response_file_target}"             \
-                                      " -invPtrLoc #{ora_install_inventory_target}"
+          install_pre_args = "export JAVA_HOME=#{@java_home}; rm #{new_binary_path} 2>/dev/null; "
+          install_pre_args << " ln -s #{install_binary_file} #{new_binary_path}; "
+          install_pre_args << " mkdir #{@wls_install_path}; chmod +x #{new_binary_path}; "
+
+          install_post_args = " -silent -responseFile #{wls_install_response_file_target}"
+          install_post_args << " -invPtrLoc #{ora_install_inventory_target}"
 
           install_command = install_pre_args + install_command_args +  install_post_args
 

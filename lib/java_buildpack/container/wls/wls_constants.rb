@@ -43,19 +43,6 @@ module JavaBuildpack
         # WLS_DOMAIN_PATH is relative to sandbox
         WLS_DOMAIN_PATH      = 'domains/'.freeze
 
-        # Required during Install...
-        # Files required for installing from a jar in silent mode
-        ORA_INSTALL_INVENTORY_FILE = 'oraInst.loc'.freeze
-        WLS_INSTALL_RESPONSE_FILE  = 'installResponseFile'.freeze
-
-        # keyword to change to point to actual wlsInstall in response file
-        WLS_INSTALL_PATH_TEMPLATE  = 'WEBLOGIC_INSTALL_PATH'.freeze
-        WLS_ORA_INVENTORY_TEMPLATE = 'ORACLE_INVENTORY_INSTALL_PATH'.freeze
-        WLS_ORA_INV_INSTALL_PATH   = '/tmp/wlsOraInstallInventory'.freeze
-
-        BEA_HOME_TEMPLATE          = 'BEA_HOME="\$MW_HOME"'
-        MW_HOME_TEMPLATE           = 'MW_HOME="\$MW_HOME"'
-
         # Expect to see a '.wls' folder containing domain configurations and script to create the domain within the App bits
         APP_WLS_CONFIG_CACHE_DIR   = '.wls'.freeze
 

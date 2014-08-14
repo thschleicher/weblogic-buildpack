@@ -55,8 +55,7 @@ module JavaBuildpack
         # while actual runtime execution occurs under /home/vcap
         def setup_path
           # The Java Buildpack for WLS creates the complete domain structure and other linkages during staging.
-          # The directory used for staging is at /tmp/staged/app
-          # But the actual DEA execution occurs at /home/vcap/app. This discrepancy can result in broken paths and non-startup of the server.
+          # The directory used for staging is at /tmp/staged/app. But the actual DEA execution occurs at /home/vcap/app. This discrepancy can result in broken paths and non-startup of the server.
           # So create linkage from /tmp/staged/app to actual environment of /home/vcap/app when things run in real execution
           # Also, this script needs to be invoked before starting the server as it will create the links and also tweak the server args
           # (to listen on correct port, use user supplied jvm args)
@@ -73,7 +72,6 @@ module JavaBuildpack
             f.puts '# This discrepancy can result in broken paths and non-startup of the server.                                       '
             f.puts '# So create linkage from /tmp/staged/app to actual environment of /home/vcap/app when things run in real execution '
             f.puts '# Create paths that match the staging env, as otherwise scripts will break!!                                       '
-            f.puts '                                                                                                                   '
             f.puts 'if [ ! -d \"/tmp/staged\" ]; then                                                                                  '
             f.puts '   /bin/mkdir /tmp/staged                                                                                          '
             f.puts 'fi;                                                                                                                '
@@ -81,6 +79,11 @@ module JavaBuildpack
             f.puts '   /bin/ln -s `pwd` /tmp/staged/app                                                                                '
             f.puts 'fi;                                                                                                                '
             f.puts '                                                                                                                   '
+            f.puts '# The Yaml configuration files used for creating the WLS Domain should be moved so they are not served accidentally'
+            f.puts '# by the web application                                                                                           '
+            f.puts '# Move them to the APP-INF or WEB-INF folder under the application.                                                '
+            f.puts '# Not moving the .java-buildpack.log or the .monitor folder                                                        '
+            f.puts 'mv /tmp/staged/app/.wls /tmp/staged/app/*-INF 2>/dev/null                                                          '
             f.puts '                                                                                                                   '
           end
         end
@@ -89,9 +92,11 @@ module JavaBuildpack
           File.open(@application.root.to_s + '/' + SETUP_ENV_SCRIPT, 'a') do |f|
             f.puts '                                                                                                                   '
             f.puts '# 2. Save the application details - application name and instance index from VCAP_APPLICATION env variable         '
-            f.puts 'APP_NAME=`env | grep VCAP_APPLICATION | sed -e \'s/,\"/&\n\"/g;s/\"//g;s/,//g\'| grep application_name             ' \
+            f.puts 'APP_NAME=`echo ${VCAP_APPLICATION} | sed -e \'s/,\"/&\n\"/g;s/\"//g;s/,//g\'| grep application_name                ' \
                                           '| cut -d: -f2`                                                                              '
-            f.puts 'INSTANCE_INDEX=`env | grep VCAP_APPLICATION  | sed -e \'s/,\"/&\n\"/g;s/\"//g;s/,//g\'| grep instance_index        ' \
+            f.puts 'SPACE_NAME=`echo ${VCAP_APPLICATION} | sed -e \'s/,\"/&\n\"/g;s/\"//g;s/,//g\'| grep space_name                    ' \
+                                          '| cut -d: -f2`                                                                              '
+            f.puts 'INSTANCE_INDEX=`echo ${VCAP_APPLICATION} | sed -e \'s/,\"/&\n\"/g;s/\"//g;s/,//g\'| grep instance_index            ' \
                                           '| cut -d: -f2`                                                                              '
             f.puts '# The above script will fail on Mac Darwin OS, set Instance Index to 0 when we are not getting numeric value match '
             f.puts 'if ! [ "$INSTANCE_INDEX" -eq "$INSTANCE_INDEX" ] 2>/dev/null; then                                                 '
@@ -100,7 +105,8 @@ module JavaBuildpack
             f.puts 'fi                                                                                                                 '
             f.puts '# Additional jvm arguments                                                                                         '
             f.puts 'IP_ADDR=`ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk \'{print $2}\' | cut -d: -f2`                     '
-            f.puts 'export APP_ID_ARGS=" -Dapplication.name=${APP_NAME} -Dapplication.instance-index=${INSTANCE_INDEX} -Dapplication.ipaddr=${IP_ADDR} " '
+            f.puts 'export APP_ID_ARGS=" -Dapplication.name=${APP_NAME} -Dapplication.instance-index=${INSTANCE_INDEX}                 '\
+                                          ' -Dapplication.space=${SPACE_NAME} -Dapplication.ipaddr=${IP_ADDR} "                        '
             f.puts '                                                                                                                   '
           end
         end

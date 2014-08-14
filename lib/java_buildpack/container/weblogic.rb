@@ -51,9 +51,13 @@ module JavaBuildpack
           .find_item(@component_name, @configuration) { |candidate_version| candidate_version.check_size(3) }
 
           @prefer_app_config = @configuration[PREFER_APP_CONFIG]
-          @start_in_wlx_mode  = @configuration[START_IN_WLX_MODE]
+          @start_in_wlx_mode = @configuration[START_IN_WLX_MODE]
 
           @wls_sandbox_root         = @droplet.sandbox
+          # Proceed with install under the APP-INF or WEB-INF folders
+          @wls_sandbox_root         = @droplet.root + 'APP-INF/wlsInstall' if app_inf?
+          @wls_sandbox_root         = @droplet.root + 'WEB-INF/wlsInstall' if web_inf?
+
           @wls_domain_path          = @wls_sandbox_root + WLS_DOMAIN_PATH
           @app_config_cache_root    = @application.root + APP_WLS_CONFIG_CACHE_DIR
           @app_services_config      = @application.services
@@ -80,7 +84,9 @@ module JavaBuildpack
       def compile
         download_and_install_wls
         configure
-        link_to(@application.root.children, deployed_app_root)
+        # The App directory would be directly targeted rather than via a dummy ROOT app
+        # and contents linking back to the source apps
+        # link_to(@application.root.children, deployed_app_root)
       end
 
       def release
@@ -140,10 +146,8 @@ module JavaBuildpack
 
         @config_cache_root = determine_config_cache_location
 
-        @wls_domain_yaml_config = Dir.glob("#{@app_config_cache_root}/*.yml")[0]
-
-        # For now, expecting only one script to be run to create the domain
-        @wls_domain_config_script    = Dir.glob("#{@app_config_cache_root}/#{WLS_SCRIPT_CACHE_DIR}/*.py")[0]
+        # Locate the domain config either under APP-INF or WEB-INF location
+        locate_domain_config_by_app_type
 
         # If there is no Domain Config yaml file, copy over the buildpack bundled basic domain configs.
         # Create the appconfig_cache_root '.wls' directory under the App Root as needed
@@ -151,17 +155,20 @@ module JavaBuildpack
           system "mkdir #{@app_config_cache_root} 2>/dev/null; " \
                   " cp  #{@buildpack_config_cache_root}/*.yml #{@app_config_cache_root}"
 
-          @wls_domain_yaml_config  = Dir.glob("#{@app_config_cache_root}/*.yml")[0]
+          @wls_domain_yaml_config = Dir.glob("#{@app_config_cache_root}/*.yml")[0]
           log('No Domain Configuration yml file found, reusing one from the buildpack bundled template!!')
         end
 
+        # For now, expecting only one script to be run to create the domain
+        @wls_domain_config_script = Dir.glob("#{@app_config_cache_root}/#{WLS_SCRIPT_CACHE_DIR}/*.py")[0]
+
         # If there is no Domain Script, use the buildpack bundled script.
         unless @wls_domain_config_script
-          @wls_domain_config_script  = Dir.glob("#{@buildpack_config_cache_root}/#{WLS_SCRIPT_CACHE_DIR}/*.py")[0]
+          @wls_domain_config_script = Dir.glob("#{@buildpack_config_cache_root}/#{WLS_SCRIPT_CACHE_DIR}/*.py")[0]
           log('No Domain creation script found, reusing one from the buildpack bundled template!!')
         end
 
-        domain_configuration       = YAML.load_file(@wls_domain_yaml_config)
+        domain_configuration = YAML.load_file(@wls_domain_yaml_config)
         log("WLS Domain Configuration: #{@wls_domain_yaml_config}: #{domain_configuration}")
 
         @domain_config   = domain_configuration['Domain']
@@ -172,12 +179,12 @@ module JavaBuildpack
         @server_name     = 'myserver' unless @server_name
 
         @domain_home     = @wls_domain_path + @domain_name
-        @domain_apps_dir = @domain_home + DOMAIN_APPS_FOLDER
+        @app_src_path    = @application.root
 
         domain_configuration || {}
       end
 
-       # Determine which configurations should be used for driving the domain creation - App or buildpack bundled configuration
+      # Determine which configurations should be used for driving the domain creation - App or buildpack bundled configuration
       def determine_config_cache_location
 
         if @prefer_app_config
@@ -188,6 +195,39 @@ module JavaBuildpack
           # But the jvm and domain configuration files from the app bundle will be used, rather than the buildpack version.
           @buildpack_config_cache_root
         end
+      end
+
+      # locate domain config yaml file based on App Type
+      def locate_domain_config_by_app_type
+        # Search for the configurations first under the WEB-INF or APP-INF folders and later directly under app bits
+        if web_inf?
+          war_config_cache_root    = @application.root + 'WEB-INF' + APP_WLS_CONFIG_CACHE_DIR
+          # If no config cache directory exists under the WEB-INF,
+          # check directly under the app and move it under the WEB-INF folder if its present
+          unless Dir.exist?(war_config_cache_root)
+            if Dir.exist?(@application.root + APP_WLS_CONFIG_CACHE_DIR)
+              system "mv #{@application.root + APP_WLS_CONFIG_CACHE_DIR} #{@application.root + 'WEB-INF'}"
+            end
+          end
+
+          @app_config_cache_root  = war_config_cache_root
+          @wls_domain_yaml_config = Dir.glob("#{war_config_cache_root}/*.yml")[0]
+
+        elsif app_inf?
+          ear_config_cache_root    = @application.root + 'APP-INF' + APP_WLS_CONFIG_CACHE_DIR
+          # If no config cache directory exists under the APP-INF,
+          # check directly under the app and move it under the APP-INF folder if its present
+          unless Dir.exist?(ear_config_cache_root)
+            if Dir.exist?(@application.root + APP_WLS_CONFIG_CACHE_DIR)
+              system "mv #{@application.root + APP_WLS_CONFIG_CACHE_DIR} #{@application.root + 'APP-INF'}"
+            end
+          end
+
+          @app_config_cache_root  = ear_config_cache_root
+          @wls_domain_yaml_config = Dir.glob("#{ear_config_cache_root}/*.yml")[0]
+
+        end
+
       end
 
       def download_and_install_wls
@@ -211,7 +251,7 @@ module JavaBuildpack
           'app_name'                 => @app_name,
           'application'              => @application,
           'app_services_config'      => @app_services_config,
-          'domain_apps_dir'          => @domain_apps_dir,
+          'app_src_path'             => @app_src_path,
           'domain_home'              => @domain_home,
           'droplet'                  => @droplet,
           'java_home'                => @java_home,
@@ -225,12 +265,6 @@ module JavaBuildpack
 
         configurer = JavaBuildpack::Container::Wls::WlsConfigurer.new(configuration_map)
         configurer.configure
-      end
-
-      def link_application
-        FileUtils.rm_rf deployed_app_root
-        FileUtils.mkdir_p deployed_app_root
-        @application.children.each { |child| FileUtils.cp_r child, deployed_app_root }
       end
 
       # Generate the property file based on app bundled configs for test against WLST
@@ -248,18 +282,24 @@ module JavaBuildpack
         log('--------------------------------------')
       end
 
-      def link_to(source, destination)
-        FileUtils.mkdir_p destination
-        source.each do |path|
-          # Ignore the .java-buildpack log and .java-buildpack subdirectory as well as .wls/.monitor
-          # and anything else not related to the app bits
-          next if path.to_s[/\.java-buildpack/]
-          next if path.to_s[/\.monitor/]
-          next if path.to_s[/\.wls/]
-          next if path.to_s[/\wlsInstall/]
-          (destination + path.basename).make_symlink(path.relative_path_from(destination))
-        end
-      end
+      # def link_application
+      #   FileUtils.rm_rf deployed_app_root
+      #   FileUtils.mkdir_p deployed_app_root
+      #   @application.children.each { |child| FileUtils.cp_r child, deployed_app_root }
+      # end
+
+      # def link_to(source, destination)
+      #   FileUtils.mkdir_p destination
+      #   source.each do |path|
+      #     # Ignore the .java-buildpack log and .java-buildpack subdirectory as well as .wls/.monitor
+      #     # and anything else not related to the app bits
+      #     next if path.to_s[/\.java-buildpack/]
+      #     next if path.to_s[/\.monitor/]
+      #     next if path.to_s[/\.wls/]
+      #     next if path.to_s[/\wlsInstall/]
+      #     (destination + path.basename).make_symlink(path.relative_path_from(destination))
+      #   end
+      # end
 
       def deployed_app_root
         @domain_apps_dir + APP_NAME
@@ -267,6 +307,10 @@ module JavaBuildpack
 
       def web_inf?
         (@application.root + 'WEB-INF').exist?
+      end
+
+      def app_inf?
+        (@application.root + 'APP-INF').exist?
       end
 
       def log(content)

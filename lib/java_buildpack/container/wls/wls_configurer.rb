@@ -25,7 +25,7 @@ module JavaBuildpack
           @app_name                        = configuration_map['app_name']
           @application                     = configuration_map['application']
           @app_services_config             = configuration_map['app_services_config']
-          @domain_apps_dir                 = configuration_map['domain_apps_dir']
+          @app_src_path                    = configuration_map['app_src_path']
           @domain_home                     = configuration_map['domain_home']
           @droplet                         = configuration_map['droplet']
           @java_home                       = configuration_map['java_home']
@@ -62,6 +62,7 @@ module JavaBuildpack
           # Modify WLS commEnv Script to use -server rather than -client
           # Modify WLS commEnv Script to set MW_HOME variable as this is used in 10.3.x but not set within it.
           modify_comm_env
+          log_and_print('Updated the commEnv.sh script to point to correct BEA_HOME, MW_HOME and WL_HOME')
 
           log_buildpack_config
           log_domain_config
@@ -72,6 +73,11 @@ module JavaBuildpack
         end
 
         private
+
+        BEA_HOME_MW_TEMPLATE     = 'BEA_HOME="\$MW_HOME"'.freeze
+        MW_HOME_MW_TEMPLATE      = 'MW_HOME="\$MW_HOME"'.freeze
+        BEA_HOME_BLANK_TEMPLATE  = 'BEA_HOME=""'.freeze
+        MW_HOME_BLANK_TEMPLATE   = 'MW_HOME=""'.freeze
 
         def update_domain_config_template(wls_domain_yaml_config)
 
@@ -89,7 +95,7 @@ module JavaBuildpack
           modified << "  wlsDomainTemplateJar: #{@wls_domain_template_jar}\n"
           modified << "  domainPath: #{@wls_domain_path}\n"
           modified << "  appName: #{APP_NAME}\n"
-          modified << "  appSrcPath: #{@domain_apps_dir}/#{APP_NAME}\n"
+          modified << "  appSrcPath: #{@app_src_path}\n"
 
           File.open(wls_domain_yaml_config, 'w') { |f| f.write modified }
 
@@ -116,11 +122,13 @@ module JavaBuildpack
             original = File.open(commEnvScript, 'r') { |f| f.read }
             modified = original.gsub(/#{CLIENT_VM}/, SERVER_VM)
 
-            updated_bea_home_entry        = "BEA_HOME=\"#{@wlsInstall}\""
-            updated_middleware_home_entry = "MW_HOME=\"#{@wlsInstall}\""
+            updated_bea_home_entry        = "BEA_HOME=\"#{@wls_install}\""
+            updated_middleware_home_entry = "MW_HOME=\"#{@wls_install}\""
 
-            modified = modified.gsub(/#{BEA_HOME_TEMPLATE}/, updated_bea_home_entry)
-            modified = modified.gsub(/#{MW_HOME_TEMPLATE}/, updated_middleware_home_entry)
+            modified = modified.gsub(/#{BEA_HOME_MW_TEMPLATE}/, updated_bea_home_entry)
+            modified = modified.gsub(/#{MW_HOME_MW_TEMPLATE}/, updated_middleware_home_entry)
+            modified = modified.gsub(/#{BEA_HOME_BLANK_TEMPLATE}/, updated_bea_home_entry)
+            modified = modified.gsub(/#{MW_HOME_BLANK_TEMPLATE}/, updated_middleware_home_entry)
             File.open(commEnvScript, 'w') { |f| f.write modified }
           end
 
@@ -133,13 +141,11 @@ module JavaBuildpack
 
           @wls_complete_domain_configs_yml = complete_domain_configs_yml
 
-          # Filtered Pathname has a problem with non-existing files
-          # It checks for their existence. So, get the path as string and add the props file name for the output file
+          # Filtered Pathname has a problem with non-existing files. So, get the path as string and add the props file name for the output file
           wls_complete_domain_configs_props = @wls_domain_yaml_config.to_s.sub('.yml', '.props')
 
           system "/bin/rm  #{wls_complete_domain_configs_props} 2>/dev/null"
 
-          # Consolidate all the user defined service definitions provided via the app,
           # Consolidate all the user defined service definitions provided via the app,
           # along with anything else that comes via the Service Bindings via the environment (VCAP_SERVICES) during staging/execution of the droplet.
           JavaBuildpack::Container::Wls::ServiceBindingsHandler.create_service_definitions_from_file_set(
@@ -156,12 +162,15 @@ module JavaBuildpack
 
           # Run wlst.sh to generate the domain as per the requested configurations
           wlst_script = Dir.glob("#{@wls_install}" + '/**/wlst.sh')[0]
-          system "/bin/chmod +x #{wlst_script}; export JAVA_HOME=#{@java_home};" \
-                                            " export MW_HOME=#{@wls_install};" \
-                                            " /bin/sed -i.bak 's#JVM_ARGS=\"#JVM_ARGS=\" -Djava.security.egd=file:/dev/./urandom #g' #{wlst_script}; "\
-                                            " #{wlst_script}  #{@wls_domain_config_script} #{wls_complete_domain_configs_props}" \
-                                              " > #{@wls_sandbox_root}/wlstDomainCreation.log"
 
+          command = "/bin/chmod +x #{wlst_script}; export JAVA_HOME=#{@java_home};"
+          command <<  " export MW_HOME=#{@wls_install}; export WL_HOME=#{@wls_home}; export WLS_HOME=#{@wls_home}; export CLASSPATH=;"
+          command <<  " sed -i.bak 's#JVM_ARGS=\"#JVM_ARGS=\" -Djava.security.egd=file:/dev/./urandom #g' #{wlst_script} 2>/dev/null; "
+          command <<  " #{wlst_script}  #{@wls_domain_config_script} #{wls_complete_domain_configs_props}"
+          command <<    " > #{@wls_sandbox_root}/wlstDomainCreation.log"
+
+          log("Executing WLST: #{command}")
+          system "#{command} "
           log("WLST finished generating domain under #{@domain_home}. WLST log saved at: #{@wls_sandbox_root}/wlstDomainCreation.log")
 
           link_jars_to_domain
@@ -188,11 +197,10 @@ module JavaBuildpack
         end
 
         def check_domain
-          wls_domain_config = Dir.glob("#{@domain_home}/**/config.xml")[0]
-          unless wls_domain_config
-            log_and_print('Problem with domain creation!!')
-            system "/bin/cat #{@wls_sandbox_root}/wlstDomainCreation.log"
-          end
+          return unless Dir.glob("#{@domain_home}/**/config.xml")[0]
+
+          log_and_print('Problem with domain creation!!')
+          system "/bin/cat #{@wls_sandbox_root}/wlstDomainCreation.log"
         end
 
         def link_jars_to_domain
@@ -209,7 +217,7 @@ module JavaBuildpack
           log("  Domain Name                : #{@domain_name}")
           log("  Domain Location            : #{@domain_home}")
           log("  App Deployment Name        : #{APP_NAME}")
-          log("  Domain Apps Directory      : #{@domain_apps_dir}")
+          log("  App Source Directory       : #{@app_src_path}")
           log("  Using App bundled Config?  : #{@prefer_app_config}")
           log("  Domain creation script     : #{@wls_domain_config_script}")
           log("  Input WLS Yaml Configs     : #{@wls_complete_domain_configs_yml}")

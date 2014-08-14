@@ -34,10 +34,6 @@ module JavaBuildpack
                           ' or weblogic deployment descriptors within App')
           log("  Does #{APP_WLS_CONFIG_CACHE_DIR} folder exist under root of the App? : #{app_wls_config_cache_exists}")
 
-          is_web_app = false unless is_web_app
-          is_ear_app = false unless is_ear_app
-          app_wls_config_cache_exists = false unless app_wls_config_cache_exists
-
           result = (app_wls_config_cache_exists || wls_config_present || is_web_app || is_ear_app)
 
           unless result

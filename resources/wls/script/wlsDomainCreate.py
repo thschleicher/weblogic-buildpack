@@ -394,8 +394,10 @@ def deployApp(appName, appSrcPath, targetServer):
 #==========================================
 def createDomain(domainEnvConfig):
   baseWLSTemplate = WL_HOME +'/common/templates/*/wls.jar'
+  print 'Original baseWlsTemplate: ' + baseWLSTemplate
   if 'wlsDomainTemplateJar' in domainEnvConfig:
     baseWLSTemplate = domainEnvConfig.get('wlsDomainTemplateJar')
+    print 'Modified baseWlsTemplate: ' + baseWLSTemplate
   print 'Reading WLS template from : ' + baseWLSTemplate
   readTemplate(baseWLSTemplate)
   cd('Servers/AdminServer')
@@ -409,7 +411,7 @@ def createDomain(domainEnvConfig):
   cd('Log/'+SERVER_NAME)
   set('StdoutSeverity', 'Debug')
   set('LoggerSeverity', 'Debug')
-  set('RedirectStdoutToServerLogEnabled', 'true')
+  #set('RedirectStdoutToServerLogEnabled', 'true')
 
   cd('/')
   cd('Security/base_domain/User/weblogic')
@@ -434,6 +436,8 @@ def createDomain(domainEnvConfig):
   closeTemplate()
   closeDomain()
   print 'Created Domain : ' + DOMAIN
+except:
+  dumpStack()
 
 def configureDomain(domainConfigProps):
  try:

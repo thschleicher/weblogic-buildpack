@@ -30,7 +30,7 @@ module JavaBuildpack
             'max_perm_size' => 256,
             'min_heap_size' => 512,
             'max_heap_size' => 1024,
-            'other_jvm_opts' => ' -verbose:gc -Xloggc:gc.log -XX:+PrintGCDetails -XX:+PrintGCTimeStamps '
+            'other_jvm_opts' => ' -verbose:gc -Xloggc:gc.log -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -Djava.security.egd=file:/dev/./urandom '
           }
 
           java_opt_tokens = java_opts.join(' ').split

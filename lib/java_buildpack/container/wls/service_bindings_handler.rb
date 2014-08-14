@@ -253,7 +253,7 @@ module JavaBuildpack
         end
 
         def self.matcher(jdbc_service, filter)
-          filter = Regexp.new(filter) unless filter.kind_of?(Regexp)
+          filter = Regexp.new(filter) unless filter.is_a?(Regexp)
 
           jdbc_service['name'] =~ filter || jdbc_service['label'] =~ filter   \
            || jdbc_service['driver'] =~ filter                                \

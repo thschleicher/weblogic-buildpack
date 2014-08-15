@@ -197,7 +197,7 @@ module JavaBuildpack
         end
 
         def check_domain
-          return unless Dir.glob("#{@domain_home}/**/config.xml")[0]
+          return if Dir.glob("#{@domain_home}/**/config.xml")[0]
 
           log_and_print('Problem with domain creation!!')
           system "/bin/cat #{@wls_sandbox_root}/wlstDomainCreation.log"

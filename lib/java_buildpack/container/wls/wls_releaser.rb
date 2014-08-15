@@ -79,14 +79,6 @@ module JavaBuildpack
             f.puts '   /bin/ln -s /home/vcap/app /tmp/staged/app                                                                       '
             f.puts 'fi;                                                                                                                '
             f.puts '                                                                                                                   '
-            f.puts '# The Yaml configuration files used for creating the WLS Domain should be moved so they are not served accidentally'
-            f.puts '# by the web application                                                                                           '
-            f.puts '# Move them to the APP-INF or WEB-INF folder under the application.                                                '
-            f.puts '# Not moving the .java-buildpack.log or the .monitor folder                                                        '
-            f.puts 'if [ -d \"/tmp/staged/app/.wls\" ]; then                                                                           '
-            f.puts '   mv /tmp/staged/app/.wls /tmp/staged/app/*-INF 2>/dev/null                                                       '
-            f.puts 'fi                                                                                                                 '
-            f.puts '                                                                                                                   '
           end
         end
 

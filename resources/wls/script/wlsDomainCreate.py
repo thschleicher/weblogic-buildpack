@@ -395,10 +395,9 @@ def deployApp(appName, appSrcPath, targetServer):
 def createDomain(domainEnvConfig):
  try:
   baseWLSTemplate = WL_HOME +'/common/templates/*/wls.jar'
-  print 'Original baseWlsTemplate: ' + baseWLSTemplate
   if 'wlsDomainTemplateJar' in domainEnvConfig:
     baseWLSTemplate = domainEnvConfig.get('wlsDomainTemplateJar')
-    print 'Modified baseWlsTemplate: ' + baseWLSTemplate
+
   print 'Reading WLS template from : ' + baseWLSTemplate
   readTemplate(baseWLSTemplate)
   cd('Servers/AdminServer')

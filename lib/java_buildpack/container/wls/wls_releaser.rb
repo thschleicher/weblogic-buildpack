@@ -76,14 +76,16 @@ module JavaBuildpack
             f.puts '   /bin/mkdir /tmp/staged                                                                                          '
             f.puts 'fi;                                                                                                                '
             f.puts 'if [ ! -d \"/tmp/staged/app\" ]; then                                                                              '
-            f.puts '   /bin/ln -s `pwd` /tmp/staged/app                                                                                '
+            f.puts '   /bin/ln -s /home/vcap/app /tmp/staged/app                                                                       '
             f.puts 'fi;                                                                                                                '
             f.puts '                                                                                                                   '
             f.puts '# The Yaml configuration files used for creating the WLS Domain should be moved so they are not served accidentally'
             f.puts '# by the web application                                                                                           '
             f.puts '# Move them to the APP-INF or WEB-INF folder under the application.                                                '
             f.puts '# Not moving the .java-buildpack.log or the .monitor folder                                                        '
-            f.puts 'mv /tmp/staged/app/.wls /tmp/staged/app/*-INF 2>/dev/null                                                          '
+            f.puts 'if [ -d \"/tmp/staged/app/.wls\" ]; then                                                                           '
+            f.puts '   mv /tmp/staged/app/.wls /tmp/staged/app/*-INF 2>/dev/null                                                       '
+            f.puts 'fi                                                                                                                 '
             f.puts '                                                                                                                   '
           end
         end
@@ -104,7 +106,7 @@ module JavaBuildpack
             f.puts '  echo Instance index set to 0                                                                                     '
             f.puts 'fi                                                                                                                 '
             f.puts '# Additional jvm arguments                                                                                         '
-            f.puts 'IP_ADDR=`ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk \'{print $2}\' | cut -d: -f2`                     '
+            f.puts 'IP_ADDR=`/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk \'{print $2}\' | cut -d: -f2`                     '
             f.puts 'export APP_ID_ARGS=" -Dapplication.name=${APP_NAME} -Dapplication.instance-index=${INSTANCE_INDEX}                 '\
                                           ' -Dapplication.space=${SPACE_NAME} -Dapplication.ipaddr=${IP_ADDR} "                        '
             f.puts '                                                                                                                   '

@@ -393,6 +393,7 @@ def deployApp(appName, appSrcPath, targetServer):
 # Create a domain from the weblogic domain template.
 #==========================================
 def createDomain(domainEnvConfig):
+ try:
   baseWLSTemplate = WL_HOME +'/common/templates/*/wls.jar'
   print 'Original baseWlsTemplate: ' + baseWLSTemplate
   if 'wlsDomainTemplateJar' in domainEnvConfig:
@@ -424,7 +425,6 @@ def createDomain(domainEnvConfig):
   else:
     cmo.setPassword('welcome1')
 
-
   cd('/')
   if 'consoleEnabled' in domainEnvConfig:
     set('ConsoleEnabled', domainEnvConfig.get('consoleEnabled'))
@@ -436,7 +436,7 @@ def createDomain(domainEnvConfig):
   closeTemplate()
   closeDomain()
   print 'Created Domain : ' + DOMAIN
-except:
+ except:
   dumpStack()
 
 def configureDomain(domainConfigProps):

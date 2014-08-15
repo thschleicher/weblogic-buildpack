@@ -126,7 +126,7 @@ module JavaBuildpack
 
           install_command = construct_install_command(install_binary_file)
 
-          log_and_print("Starting WebLogic Install with command:  #{install_command}")
+          log("Starting WebLogic Install with command:  #{install_command}")
           system " #{install_command} > /tmp/install.log; mv /tmp/install.log #{@wls_sandbox_root};"
           log("Finished running install, output saved at: #{@wls_sandbox_root}/install.log")
 
@@ -176,7 +176,7 @@ module JavaBuildpack
           command << "/bin/cp #{ora_install_inventory_src} /tmp;"
           command << "/bin/cp #{wls_install_response_file_src} /tmp"
 
-          system "#{command}; cat /tmp/installResponseFile"
+          system "#{command}"
         end
 
         def update_template(template, pattern_from, pattern_to)

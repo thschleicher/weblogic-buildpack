@@ -25,16 +25,19 @@ module JavaBuildpack
           search_path = (application.root).to_s + '/**/weblogic*xml'
           wls_config_present = Dir.glob(search_path).length > 0
 
-          app_wls_config_cache_exists = (application.root + APP_WLS_CONFIG_CACHE_DIR).exist?
           is_ear_app = app_inf?(application)
           is_web_app = web_inf?(application)
+          app_wls_config_cache_exists = (application.root + APP_WLS_CONFIG_CACHE_DIR).exist?
+          app_wls_config_cache_exists = (application.root + 'APP-INF' + APP_WLS_CONFIG_CACHE_DIR).exist? unless app_wls_config_cache_exists
+          app_wls_config_cache_exists = (application.root + 'WEB-INF' + APP_WLS_CONFIG_CACHE_DIR).exist? unless app_wls_config_cache_exists
 
           log("Running Detection on App: #{application.root}")
           log("  Checking for presence of #{APP_WLS_CONFIG_CACHE_DIR} folder under root of the App" \
                           ' or weblogic deployment descriptors within App')
           log("  Does #{APP_WLS_CONFIG_CACHE_DIR} folder exist under root of the App? : #{app_wls_config_cache_exists}")
 
-          result = (app_wls_config_cache_exists || wls_config_present || is_web_app || is_ear_app)
+          result = (app_wls_config_cache_exists || wls_config_present || is_web_app || is_ear_app) \
+                        && !JavaBuildpack::Util::JavaMainUtils.main_class(application)
 
           unless result
             log_and_print "WLS Buildpack Detection on App: #{application.root} failed!!!"

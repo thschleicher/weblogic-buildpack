@@ -53,10 +53,18 @@ module JavaBuildpack
           @prefer_app_config = @configuration[PREFER_APP_CONFIG]
           @start_in_wlx_mode = @configuration[START_IN_WLX_MODE]
 
-          @wls_sandbox_root         = @droplet.sandbox
           # Proceed with install under the APP-INF or WEB-INF folders
-          @wls_sandbox_root         = @droplet.root + 'APP-INF/wlsInstall' if app_inf?
-          @wls_sandbox_root         = @droplet.root + 'WEB-INF/wlsInstall' if web_inf?
+
+          if app_inf?
+            @wls_sandbox_root = @droplet.root + 'APP-INF/wlsInstall'
+            # Possible the APP-INF folder got stripped out as it didnt contain anything
+            create_sub_folder(@droplet.root, 'APP-INF')
+          else
+            # Treat as webapp by default
+            @wls_sandbox_root = @droplet.root + 'WEB-INF/wlsInstall'
+            # Possible the WEB-INF folder got stripped out as it didnt contain anything
+            create_sub_folder(@droplet.root, 'WEB-INF')
+          end
 
           @wls_domain_path          = @wls_sandbox_root + WLS_DOMAIN_PATH
           @app_config_cache_root    = @application.root + APP_WLS_CONFIG_CACHE_DIR
@@ -100,7 +108,7 @@ module JavaBuildpack
         [
           @droplet.java_home.as_env_var,
           "USER_MEM_ARGS=\"#{@droplet.java_opts.join(' ')}\"",
-          "#{setup_env_script}; #{monitor_script} ; #{@domain_home}/startWebLogic.sh"
+          "sleep 10; #{setup_env_script}; #{monitor_script} ; #{@domain_home}/startWebLogic.sh"
         ].flatten.compact.join(' ')
       end
 
@@ -310,7 +318,14 @@ module JavaBuildpack
       end
 
       def app_inf?
-        (@application.root + 'APP-INF').exist?
+        (@application.root + 'APP-INF').exist? || (@application.root + 'META-INF/application.xml').exist?
+      end
+
+      def create_sub_folder(parent, child)
+        return unless (parent + '/' + child).exist?
+
+        # Possible the APP-INF folder got stripped out as it didnt contain anything
+        system "mkdir #{parent}/#{child}"
       end
 
       def log(content)

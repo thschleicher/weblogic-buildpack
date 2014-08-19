@@ -148,14 +148,14 @@ module JavaBuildpack
         # Can be the App bundled configs
         # or the buildpack bundled configs
 
+        # Locate the domain config either under APP-INF or WEB-INF location
+        locate_domain_config_by_app_type
+
         # During development when the domain structure is still in flux, use App bundled config to test/tweak the domain.
         # Once the domain structure is finalized, save the configs as part of the buildpack and then only pass along the
         # bare bones domain config and jvm config. Ignore the rest of the app configs.
 
-        @config_cache_root = determine_config_cache_location
-
-        # Locate the domain config either under APP-INF or WEB-INF location
-        locate_domain_config_by_app_type
+        @config_cache_root = determine_config_cache
 
         # If there is no Domain Config yaml file, copy over the buildpack bundled basic domain configs.
         # Create the appconfig_cache_root '.wls' directory under the App Root as needed
@@ -192,19 +192,6 @@ module JavaBuildpack
         domain_configuration || {}
       end
 
-      # Determine which configurations should be used for driving the domain creation - App or buildpack bundled configuration
-      def determine_config_cache_location
-
-        if @prefer_app_config
-          # Use the app bundled configuration and domain creation scripts.
-          @app_config_cache_root
-        else
-          # Use the buidlpack's bundled configuration and domain creation scripts (under resources/wls)
-          # But the jvm and domain configuration files from the app bundle will be used, rather than the buildpack version.
-          @buildpack_config_cache_root
-        end
-      end
-
       # locate domain config yaml file based on App Type
       def locate_domain_config_by_app_type
         # Search for the configurations first under the WEB-INF or APP-INF folders and later directly under app bits
@@ -236,6 +223,19 @@ module JavaBuildpack
 
         end
 
+      end
+
+      # Determine which configurations should be used for driving the domain creation - App or buildpack bundled configuration
+      def determine_config_cache
+
+        if @prefer_app_config
+          # Use the app bundled configuration and domain creation scripts.
+          @app_config_cache_root
+        else
+          # Use the buidlpack's bundled configuration and domain creation scripts (under resources/wls)
+          # But the jvm and domain configuration files from the app bundle will be used, rather than the buildpack version.
+          @buildpack_config_cache_root
+        end
       end
 
       def download_and_install_wls

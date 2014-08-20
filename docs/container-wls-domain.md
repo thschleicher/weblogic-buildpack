@@ -12,29 +12,28 @@ Sample Web Application (WAR) structure
               WEB-INF/web.xml
               WEB-INF/weblogic.xml
               index.jsp
-              .wls/
-              .wls/foreignjms/
-              .wls/foreignjms/foreignJmsConfig1.yml
-              .wls/jdbc/
-              .wls/jdbc/jdbcDatasource1.yml
-              .wls/jdbc/jdbcDatasource2.yml
-              .wls/jms/
-              .wls/jms/jmsConfig.yml
-              .wls/jvm/
-              .wls/jvm/jvmConfig.yml
-              .wls/postJars/
-              .wls/postJars/README.txt
-              .wls/preJars/
-              .wls/preJars/README.txt
-              .wls/script/
-              .wls/script/wlsDomainCreate.py                 <--------- WLST Script
-              .wls/security/
-              .wls/security/securityConfig.yml
-              .wls/wlsDomainConfig.yml                       <--------- Domain Config file
+              WEB-INF/.wls/
+              WEB-INF/.wls/foreignjms/
+              WEB-INF/.wls/foreignjms/foreignJmsConfig1.yml
+              WEB-INF/.wls/jdbc/
+              WEB-INF/.wls/jdbc/jdbcDatasource1.yml
+              WEB-INF/.wls/jdbc/jdbcDatasource2.yml
+              WEB-INF/.wls/jms/
+              WEB-INF/.wls/jms/jmsConfig.yml
+              WEB-INF/.wls/postJars/
+              WEB-INF/.wls/preJars/
+              WEB-INF/.wls/preJars/README.txt
+              WEB-INF/.wls/script/
+              WEB-INF/.wls/script/wlsDomainCreate.py                 <--------- WLST Script
+              WEB-INF/.wls/security/
+              WEB-INF/.wls/security/securityConfig.yml
+              WEB-INF/.wls/wlsDomainConfig.yml                       <--------- Domain Config file
 
        ```
 
-The contents of the domain config file specify the name of the domain and server, name and password of the admin user. Additionally, it can also specify whether to enable Console and Production Mode.
+The contents of the domain config file specify the name and password of the admin user.
+Additionally, it can also specify whether to enable Console and Production Mode.
+The Domain name and server names would be auto-configured based on the name of the application being pushed.
 The parameters are used by the buildpack during creation of the domain using the wlst script provided along with the application.
 Presence of this file along with the script is mandatory for creation of the WebLogic Domain.
 
@@ -44,12 +43,11 @@ Sample domain config (from [wlsDomainConfig.yml](resources/wls/wlsDomainConfig.y
 # Configuration for the WebLogic Domain
 ---
 
-# Need serverName, domainName, user and password filled in
+# Need mainly user and password filled in
+# Will figure out domain name and server name based on application name from VCAP_APPLICATION Env variable
 #
 
 Domain:
-  serverName: testServer
-  domainName: cfDomain
   wlsUser: weblogic
   wlsPasswd: welcome1
   consoleEnabled: true
@@ -57,8 +55,6 @@ Domain:
 
 ```
 
-* **`serverName`** denotes the name of the generated server
-* **`domainName`** denotes the name of the generated domain
 * **`wlsUser`** denotes the name of the admin user
 * **`wlsPaswd`** denotes the password of the admin user
 * **`consoleEnabled`** enables or disables WLS Admin Console deployment

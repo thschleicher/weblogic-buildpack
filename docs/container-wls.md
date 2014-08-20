@@ -304,7 +304,7 @@ Please refer to [Overriding App Bundled Configuration](#overriding-app-bundled-c
 
    * Domain configuration (non-mandatory)
    
-     The **`.wls`** folder should contain a single yaml file that contains information about the target domain, server name, user credentials etc.
+     The **`.wls`** folder should contain a single yaml file that contains information about the user credentials for the target domain.
      There is a sample [Domain config ](resources/wls/wlsDomainConfig.yml) bundled within the buildpack that can be used as a template to modify/extend the resulting domain.
 	 
 	 Refer to [domain](docs/container-wls-domain.md) for more details.
@@ -348,11 +348,31 @@ Please refer to [Overriding App Bundled Configuration](#overriding-app-bundled-c
    
      The **`postJars`** folder within **`.wls`** can contain multiple jars or other resources, required to be loaded after the WebLogic related jars. This can be useful for loading JDBC Drivers, Application dependencies or other resources as part of the server classpath.
 
-   * Pre-existing Services bound to the Application
+   * External Services bound to the Application
      * Services that are bound to the application via the Service Broker functionality would be used to configure and create related services in the WebLogic Domain.
        * The **VCAP_SERVICES** environment variable would be parsed to identify MySQL, PostGres or other services and create associated configurations in the resulting domain.
        * The services can be either from [Pivotal Web Services Marketplace][] or [User Provided Services][] (like internal databases or services managed by internal Administrators and user applications just connect to it).
+         * Sample User-Provided JDBC Service (bound to oracle db):
 
+           ```
+
+           cf cups GlobalDataSourceXA -p '{ "label" : "oracle",  "xaProtocol": "TwoPhaseCommit", "jndiName": "jdbc/GlobalDataSourceXA", "driver": "oracle.jdbc.xa.client.OracleXADataSource", "initCapacity": 1, "maxCapacity": 4, "username": "scott", "password": "tiger", "hostname": "10.10.10.6", "jdbcUrl": "jdbc:oracle:thin:@10.10.10.6:1521:xe" }'
+
+           cf bind-service medrec MedRecGlobalDataSourceXA
+
+           ```
+
+         This would lead to the creation of a JDBC Datasource within the server configuration with **JNDI Name : jbdc/GlobalDataSourceXA**
+
+         * Sample User-Provided JMS Service (uses non-persistence messaging):
+           ```
+           cf cups JMS-SampleJMSService -p ' { "label": "jms-server", "jmsServer" : "TestJmsServer-1", "moduleName": "TestJmsMod-1", "queues": "com.test.jms.CreateQueue;com.test.jms.UpdateQueue;" }'
+
+           cf bind-service SampleTestApp JMS-SampleJMSService
+
+           ```
+
+         This would lead to the creation of a JMS Server within the server configuration comprising of two Queues with **JNDI Names : com.test.jms.CreateQueue and com.test.jms.UpdateQueue **
 
 ## Usage
 
@@ -380,11 +400,11 @@ A single server instance would be started as part of the droplet execution. The 
 The application can be scaled up or down using cf scale command. This would trigger multiple copies of the same droplet (identical server configuration and application bits but different server listen ports) to be executing in parallel.
 
 Note: Ensure `cf push` uses **`-m`** argument to specify a minimum process memory footprint of 1024 MB (1GB). Failure to do so will result in very small memory size for the droplet container and the jvm startup can fail. 
-
+'-t' option can be used to specify the timeout period (time for server to come up and start listening before warden kills it)
 Sample cf push: 
 
 ````
-cf push wlsSampleApp -m 1024M -p wlsSampleApp.war
+cf push wlsSampleApp -m 1024M -p wlsSampleApp.war -t 100
 ```
 
 ## Examples
@@ -640,11 +660,7 @@ Setting env variable 'JBP_LOG_LEVEL' to 'debug' for app ff in org sabha / space 
 OK
 TIP: Use 'cf push' to ensure your env variable changes take effect
 
-hammerkop:workspace sparameswaran$ cf push ff -p test
-Updating app ff in org sabha / space sabha as admin...
-OK
-
-hammerkop:workspace sparameswaran$ cf push ff -p test
+hammerkop:workspace sparameswaran$ cf push ff -p test -t 100
 Updating app ff in org sabha / space sabha as admin...
 OK
 
@@ -693,7 +709,7 @@ Connected, dumping recent logs for app ff in org sabha / space sabha as admin...
 * Only stateless applications are supported.
   * The server will start with a brand new image (on an entirely different VM possibly) on restarts and hence it cannot rely on state of previous runs.
   The file system is ephemeral and will be reset after a restart of the server instance. This means Transaction recovery is not supported after restarts.
-  This also includes no support for messaging using persistent file stores.
+  This also includes no support for persistent messaging using file stores.
   WebLogic LLR for saving transaction logs on database and JDBC JMS store options are both not possible as the identify of the server would be unique and different on each run.
 
 * Changes made via the WebLogic Admin Console will not persist across restarts for the same reasons mentioned previously, domain customizations should be made at staging time using the buildpack configuration options.

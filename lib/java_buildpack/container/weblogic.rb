@@ -180,9 +180,12 @@ module JavaBuildpack
         log("WLS Domain Configuration: #{@wls_domain_yaml_config}: #{domain_configuration}")
 
         @domain_config   = domain_configuration['Domain']
-        @domain_name     = @domain_config['domainName']
-        @server_name     = @domain_config['serverName']
 
+        # Parse environment variable VCAP_APPLICATION to
+        # configure the app, domain and server names
+        configure_names_from_env
+
+        @app_name        = 'testApp'  unless @app_name
         @domain_name     = 'cfDomain' unless @domain_name
         @server_name     = 'myserver' unless @server_name
 
@@ -260,6 +263,8 @@ module JavaBuildpack
           'application'              => @application,
           'app_services_config'      => @app_services_config,
           'app_src_path'             => @app_src_path,
+          'domain_name'              => @domain_name,
+          'server_name'              => @server_name,
           'domain_home'              => @domain_home,
           'droplet'                  => @droplet,
           'java_home'                => @java_home,
@@ -308,6 +313,20 @@ module JavaBuildpack
       #     (destination + path.basename).make_symlink(path.relative_path_from(destination))
       #   end
       # end
+
+      def configure_names_from_env
+        vcap_application_env_value = ENV['VCAP_APPLICATION']
+
+        return unless vcap_application_env_value
+        vcap_app_map = YAML.load(vcap_application_env_value)
+
+        # name     = vcap_app_map['name']
+        @app_name = vcap_app_map['application_name']
+
+        @domain_name = @app_name + 'Domain'
+        @server_name = @app_name + 'Server'
+
+      end
 
       def deployed_app_root
         @domain_apps_dir + APP_NAME

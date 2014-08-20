@@ -20,8 +20,6 @@ Sample Web Application (WAR) structure
               .wls/jdbc/jdbcDatasource2.yml
               .wls/jms/
               **.wls/jms/jmsConfig.yml                         <--------- JVM Config file**
-              .wls/jvm/
-              .wls/jvm/jvmConfig.yml
               .wls/postJars/
               .wls/postJars/README.txt
               .wls/preJars/
@@ -39,6 +37,16 @@ Only non-persistent messaging is supported at this time as there is no support f
 There can be multiple config files under the jms each with its own jms server (all running on the same WebLogic Server instance) and hosting a jms module with its own set of Destinations and CFs.
 Tweak the WLST Script if there is need for additional configuration changes.
 
+The same jms configuration can be created using user-provided service bindings without using the yaml file.
+
+Example:
+
+       ```
+       cf cups JMS-SampleJMSService -p ' { "label": "jms-server", "jmsServer" : "TestJmsServer-1", "moduleName": "TestJmsMod-1", "queues": "com.test.jms.CreateQueue;com.test.jms.UpdateQueue;" }'
+
+       cf bind-service SampleTestApp JMS-SampleJMSService
+
+       ```
 
 Sample jms config (from [jmsConfig.yml](resources/wls/jms/jmsConfig.yml)
 

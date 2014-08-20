@@ -36,6 +36,17 @@ Sample Web Application (WAR) structure
 
 The contents of the jdbc config files specify the parameters used for creation of JDBC Datasources to be available on the WebLogic Server.
 
+The same JDBC Datasource configuration can be created using user-provided service bindings without using the yaml file.
+
+Example:
+
+       ```
+       cf cups GlobalDataSourceXA -p '{ "label" : "oracle",  "xaProtocol": "TwoPhaseCommit", "jndiName": "jdbc/GlobalDataSourceXA", "driver": "oracle.jdbc.xa.client.OracleXADataSource", "initCapacity": 1, "maxCapacity": 4, "username": "scott", "password": "tiger", "hostname": "10.10.10.6", "jdbcUrl": "jdbc:oracle:thin:@10.10.10.6:1521:xe" }'
+
+       cf bind-service medrec MedRecGlobalDataSourceXA
+       ```
+
+
 Sample Multipool jdbc config (from [jdbcDatasource1](resources/wls/jdbc/jdbcDatasource1.yml)
 
 ```

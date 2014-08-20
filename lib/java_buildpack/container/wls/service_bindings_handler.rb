@@ -63,8 +63,22 @@ module JavaBuildpack
               elsif user_defined_service.to_s[/amqp/]
                 # This appears to be of type AMQP
                 save_amqp_jms_service_definition(service_entry, output_props_file)
+              elsif user_defined_service.to_s[/jmsServer/]
+                # This appears to be of type JMS Server & related destinations
+                service_name = user_defined_service['name']
+                service_name = 'JMS-' + service_name unless service_name[/^JMS/]
+                save_from_user_defined_service_definition(user_defined_service, output_props_file, service_name)
+              elsif user_defined_service.to_s[/jndiProperties/]
+                # This appears to be of type Foreign JMS Server & related destinations
+                service_name = user_defined_service['name']
+                service_name = 'ForeignJMS-' + service_name unless service_name[/^ForeignJMS/]
+                save_from_user_defined_service_definition(user_defined_service, output_props_file, service_name)
               else
+                # This appears to be an unknown type of service - just convert to wlst properties type
+                # and let the script figure out what to do
                 log_and_print("Unknown User defined Service bindings !!!... #{user_defined_service}")
+                service_name = user_defined_service['name']
+                save_from_user_defined_service_definition(user_defined_service, output_props_file, service_name)
               end
             else
               log_and_print("Unknown Service bindings !!!... #{service_entry}")
@@ -225,6 +239,7 @@ module JavaBuildpack
           # Dont know which InitialCF to use as well as the various arguments to pass in to bridge WLS To AMQP
           # Found some docs that talk of Apache ActiveMQ: org.apache.activemq.jndi.ActiveMQInitialContextFactory
           # and some others using: org.apache.qpid.amqp_1_0.jms.jndi.PropertiesFileInitialContextFactory
+          # Dont see a point of WLS customers using AMQP to communicate...
 
           File.open(output_props_file, 'a') do |f|
             f.puts ''
@@ -236,7 +251,6 @@ module JavaBuildpack
           end
         end
 
-        # Dont see a point of WLS customers using AMQP to communicate...
         def self.save_base_service_definition(service_config, output_props_file, service_name)
           # log("Saving Service Defn : #{service_config} with service_name: #{service_name}")
           File.open(output_props_file, 'a') do |f|
@@ -244,6 +258,21 @@ module JavaBuildpack
             f.puts "[#{service_name}]"
 
             service_config.each do |entry|
+              f.puts "#{entry[0]}=#{entry[1]}"
+            end
+
+            f.puts ''
+
+          end
+        end
+
+        def self.save_from_user_defined_service_definition(service_config, output_props_file, service_name)
+          # log("Saving from Yaml, Service Defn : #{service_config} with service_name: #{service_name}")
+          File.open(output_props_file, 'a') do |f|
+            f.puts ''
+            f.puts "[#{service_name}]"
+
+            service_config['credentials'].each do |entry|
               f.puts "#{entry[0]}=#{entry[1]}"
             end
 

@@ -26,7 +26,9 @@ module JavaBuildpack
           @application                     = configuration_map['application']
           @app_services_config             = configuration_map['app_services_config']
           @app_src_path                    = configuration_map['app_src_path']
+          @domain_name                     = configuration_map['domain_name']
           @domain_home                     = configuration_map['domain_home']
+          @server_name                     = configuration_map['server_name']
           @droplet                         = configuration_map['droplet']
           @java_home                       = configuration_map['java_home']
           @config_cache_root               = configuration_map['config_cache_root']
@@ -84,17 +86,21 @@ module JavaBuildpack
           original = File.open(wls_domain_yaml_config, 'r') { |f| f.read }
 
           # Remove any existing references to wlsHome or domainPath
-          modified = original.gsub(/  wlsHome:.*$\n/, '')
-          modified = original.gsub(/  wlsDomainTemplateJar:.*$\n/, '')
-          modified = modified.gsub(/  domainPath:.*$\n/, '')
-          modified = modified.gsub(/  appName:.*$\n/, '')
-          modified = modified.gsub(/  appSrcPath:.*$\n/, '')
+          modified = original.gsub(/ *domainName:.*$\n/, '')
+          modified = original.gsub(/ *serverName:.*$\n/, '')
+          modified = original.gsub(/ *wlsHome:.*$\n/, '')
+          modified = original.gsub(/ *wlsDomainTemplateJar:.*$\n/, '')
+          modified = modified.gsub(/ *domainPath:.*$\n/, '')
+          modified = modified.gsub(/ *appName:.*$\n/, '')
+          modified = modified.gsub(/ *appSrcPath:.*$\n/, '')
 
           # Add new references to wlsHome and domainPath
+          modified << "  domainName: #{@domain_name}\n"
+          modified << "  serverName: #{@server_name}\n"
           modified << "  wlsHome: #{@wls_home}\n"
           modified << "  wlsDomainTemplateJar: #{@wls_domain_template_jar}\n"
           modified << "  domainPath: #{@wls_domain_path}\n"
-          modified << "  appName: #{APP_NAME}\n"
+          modified << "  appName: #{@app_name}\n"
           modified << "  appSrcPath: #{@app_src_path}\n"
 
           File.open(wls_domain_yaml_config, 'w') { |f| f.write modified }
@@ -197,7 +203,7 @@ module JavaBuildpack
         end
 
         def check_domain
-          return if Dir.glob("#{@domain_home}/**/config.xml")[0]
+          return if Dir.glob("#{@domain_home}/config/config.xml")[0]
 
           log_and_print('Problem with domain creation!!')
           system "/bin/cat #{@wls_sandbox_root}/wlstDomainCreation.log"
@@ -215,8 +221,9 @@ module JavaBuildpack
           log('Configurations for WLS Domain Creation')
           log('--------------------------------------')
           log("  Domain Name                : #{@domain_name}")
+          log("  Server Name                : #{@server_name}")
           log("  Domain Location            : #{@domain_home}")
-          log("  App Deployment Name        : #{APP_NAME}")
+          log("  App Deployment Name        : #{@app_name}")
           log("  App Source Directory       : #{@app_src_path}")
           log("  Using App bundled Config?  : #{@prefer_app_config}")
           log("  Domain creation script     : #{@wls_domain_config_script}")
@@ -232,6 +239,8 @@ module JavaBuildpack
           log("  JAVA_HOME     : #{@java_home} ")
           log("  WLS_INSTALL   : #{@wls_install} ")
           log("  WLS_HOME      : #{@wls_home}")
+          log("  DOMAIN_NAME   : #{@domain_name}")
+          log("  SERVER_NAME   : #{@server_name}")
           log("  DOMAIN HOME   : #{@domain_home}")
           log('--------------------------------------')
         end

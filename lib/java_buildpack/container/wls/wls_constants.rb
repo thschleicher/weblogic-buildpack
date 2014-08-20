@@ -21,7 +21,6 @@ module JavaBuildpack
 
         NEWLINE              = "\n".freeze
 
-        APP_NAME             = 'ROOT'.freeze
         WEB_INF_DIRECTORY    = 'WEB-INF'.freeze
 
         JAVA_BINARY          = 'java'.freeze

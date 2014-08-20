@@ -1,12 +1,11 @@
 # Configuration for the WebLogic Domain
 ---
 
-# Need serverName, domainName, user and password filled in
+# Need mainly user and password filled in
+# Will figure out domain name and server name based on application name from VCAP_APPLICATION Env variable
 #
 
 Domain:
-  serverName: testServer
-  domainName: cfDomain
   wlsUser: weblogic
   wlsPasswd: welcome1
   consoleEnabled: true

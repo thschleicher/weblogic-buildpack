@@ -204,6 +204,16 @@ module JavaBuildpack
           f.puts "password=#{jdbc_datasource_config['password']}" if jdbc_datasource_config['password']
         end
 
+        def self.save_other_jdbc_settings(jdbc_datasource_config, f)
+
+          jdbc_datasource_config.each do |entry|
+
+              # Save everything else that does not match the already saved patterns
+              f.puts "#{entry[0]}=#{entry[1]}" unless entry[0][/(name)|(jndiName)|(password)|(isMulti)|(jdbcUrl)|(mp_algo)|(Capacity)|(connection)|(driver)|(testSql)|(xaProtocol)/]
+          end
+
+        end
+
         def self.save_jdbc_service_definition(jdbc_datasource_config, output_props_file)
 
           section_name = jdbc_datasource_config['name']
@@ -226,6 +236,8 @@ module JavaBuildpack
             elsif oracle?(jdbc_datasource_config)
               save_oracle_attrib(jdbc_datasource_config, f)
             end
+
+            save_other_jdbc_settings(jdbc_datasource_config, f)
 
             f.puts ''
           end

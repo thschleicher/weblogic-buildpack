@@ -217,6 +217,22 @@ module JavaBuildpack
           system "/bin/ln -s #{@config_cache_root}/#{WLS_POST_JARS_CACHE_DIR} #{@domain_home}/#{WLS_POST_JARS_CACHE_DIR} 2>/dev/null"
         end
 
+        # Generate the property file based on app bundled configs for test against WLST
+        def test_service_creation
+          JavaBuildpack::Container::Wls::ServiceBindingsHandler.create_service_definitions_from_file_set(
+              @wls_complete_domain_configs_yml,
+              @config_cache_root,
+              @wls_complete_domain_configs_props)
+          JavaBuildpack::Container::Wls::ServiceBindingsHandler.create_service_definitions_from_bindings(
+              @app_services_config,
+              @wls_complete_domain_configs_props)
+
+          log('Done generating Domain Configuration Property file for WLST: '\
+                            "#{@wls_complete_domain_configs_props}")
+          log('--------------------------------------')
+        end
+
+
         def log_domain_config
           log('Configurations for WLS Domain Creation')
           log('--------------------------------------')

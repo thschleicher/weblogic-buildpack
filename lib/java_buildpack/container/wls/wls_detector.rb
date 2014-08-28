@@ -36,17 +36,17 @@ module JavaBuildpack
                           ' or weblogic deployment descriptors within App')
           log("  Does #{APP_WLS_CONFIG_CACHE_DIR} folder exist under root of the App? : #{app_wls_config_cache_exists}")
 
-          result = (app_wls_config_cache_exists || wls_config_present || is_web_app || is_ear_app) \
+          result = (wls_config_present  || app_wls_config_cache_exists || is_web_app || is_ear_app) \
                         && !JavaBuildpack::Util::JavaMainUtils.main_class(application)
 
           unless result
-            log_and_print "WLS Buildpack Detection on App: #{application.root} failed!!!"
-            log_and_print "Checked for presence of #{APP_WLS_CONFIG_CACHE_DIR} folder under root of the App " \
+            log "WLS Buildpack Detection on App: #{application.root} failed!!!"
+            log "Checked for presence of #{APP_WLS_CONFIG_CACHE_DIR} folder under root of the App " \
                             ' or weblogic deployment descriptors within App'
-            log_and_print "  Do weblogic deployment descriptors exist within App?   : #{wls_config_present}"
-            log_and_print "  Or is it a simple Web Application with WEB-INF folder? : #{is_web_app}"
-            log_and_print "  Or is it a Enterprise Application with APP-INF folder? : #{is_ear_app}"
-            log_and_print "  Or does #{APP_WLS_CONFIG_CACHE_DIR} folder exist under root of the App?       : #{app_wls_config_cache_exists}"
+            log "  Do weblogic deployment descriptors exist within App?   : #{wls_config_present}"
+            log "  Or is it a simple Web Application with WEB-INF folder? : #{is_web_app}"
+            log "  Or is it a Enterprise Application with APP-INF folder? : #{is_ear_app}"
+            log "  Or does #{APP_WLS_CONFIG_CACHE_DIR} folder exist under root of the App?       : #{app_wls_config_cache_exists}"
           end
 
           result
@@ -65,9 +65,6 @@ module JavaBuildpack
           JavaBuildpack::Container::Wls::WlsUtil.log(content)
         end
 
-        def self.log_and_print(content)
-          JavaBuildpack::Container::Wls::WlsUtil.log_and_print(content)
-        end
       end
     end
   end

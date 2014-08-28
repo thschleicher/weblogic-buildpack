@@ -27,10 +27,10 @@ module JavaBuildpack
           # Use JVM Args defaults
           jvm_default_map = {
             'min_perm_size' => 128,
-            'max_perm_size' => 256,
+            'max_perm_size' => 128,
             'min_heap_size' => 512,
             'max_heap_size' => 1024,
-            'other_jvm_opts' => ' -verbose:gc -Xloggc:gc.log -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -Djava.security.egd=file:/dev/./urandom '
+            'other_jvm_opts' => ' -verbose:gc -Xloggc:gc.log -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:-DisableExplicitGC -Djava.security.egd=file:/dev/./urandom '
           }
 
           java_opt_tokens = java_opts.join(' ').split
@@ -45,7 +45,7 @@ module JavaBuildpack
             if token[/-XX:PermSize/]
               jvm_default_map['min_perm_size'] = int_value_in_mb if int_value_in_mb > 128
             elsif token[/-XX:MaxPermSize/]
-              jvm_default_map['max_perm_size'] = int_value_in_mb if int_value_in_mb > 256
+              jvm_default_map['max_perm_size'] = int_value_in_mb if int_value_in_mb > 128
             elsif token[/-Xms/]
               jvm_default_map['min_heap_size'] = int_value_in_mb
             elsif token[/-Xmx/]

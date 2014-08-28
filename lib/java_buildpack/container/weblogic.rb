@@ -280,21 +280,6 @@ module JavaBuildpack
         configurer.configure
       end
 
-      # Generate the property file based on app bundled configs for test against WLST
-      def test_service_creation
-        JavaBuildpack::Container::Wls::ServiceBindingsReader.create_service_definitions_from_file_set(
-            @wls_complete_domain_configs_yml,
-            @config_cache_root,
-            @wls_complete_domain_configs_props)
-        JavaBuildpack::Container::Wls::ServiceBindingsReader.create_service_definitions_from_bindings(
-            @app_services_config,
-            @wls_complete_domain_configs_props)
-
-        log('Done generating Domain Configuration Property file for WLST: '\
-                            "#{@wls_complete_domain_configs_props}")
-        log('--------------------------------------')
-      end
-
       # def link_application
       #   FileUtils.rm_rf deployed_app_root
       #   FileUtils.mkdir_p deployed_app_root

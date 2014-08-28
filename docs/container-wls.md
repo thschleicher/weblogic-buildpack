@@ -13,7 +13,7 @@ The complete bundle of the server and application bits would be used to create a
 
 * Configure a single server default WebLogic Domain. Configuration of the domain and subsystems would be determined by the configuration bundled with the application or the buildpack.
 
-* JDBC Datasources and JMS services are supported with domain configuration options.
+* JDBC Datasources and JMS services are supported with domain configuration options. WebLogic Server can use a non-XA JDBC datasource to also store [Transaction Logs] [].
 
 * WebLogic Server can be configured to run in limited footprint mode (no support for EJB, JMS, known as WLX mode) or in full mode.
 
@@ -321,14 +321,14 @@ Please refer to [Overriding App Bundled Configuration](#overriding-app-bundled-c
      There can be a **`jdbc`** folder within **`.wls`** with multiple yaml files, each containing configuration relating to datasources (single or multi-pool).
      There is a sample [JDBC config](resources/wls/jdbc/jdbcDatasource1.yml) bundled within the buildpack that can be used as a template to modify/extend the resulting domain with additional datasources.
      
-	 Refer to [jdbc](docs/container-wls-jdbc.md) for more details.
+	 Refer to [jdbc](container-wls-jdbc.md) for more details.
 	 
    * JMS Resources related configuration (non-mandatory)
    
      There can be a **`jms`** folder within **`.wls`** with a yaml file, containing configuration relating to jms resources
      There is a sample [JMS config](resources/wls/jms/jmsConfig.yml) bundled within the buildpack that can be used as a template to modify/extend the resulting domain with JMS Destinations/Connection Factories.
 	 
-	 Refer to [jms](docs/container-wls-jms.md) for more details.
+	 Refer to [jms](container-wls-jms.md) for more details.
      	 
    * Foreign JMS Resources related configuration (non-mandatory)
    
@@ -383,7 +383,7 @@ cf push -b https://github.com/pivotal-cf/weblogic-buildpack <APP_NAME> -p <APP_B
 ```
 
 While working in sandbox env against Bosh-Lite, its also possible to use a modified version of the buildpack without github repository using the zip format of the buildpack.
-**Note:** Use zip to create the buildpack (rather than jar) to ensure the detect, compile, release have execute permissions during the actual building of the app.
+**Note:** Use zip to create the buildpack (rather than jar) to ensure the detect, compile, release files under bin folder have execute permissions during the actual building of the app.
 
 ```
 cf create-buildpack weblogic-buildpack weblogic-buildpack.zip 1 --enable
@@ -407,6 +407,35 @@ Sample cf push:
 cf push wlsSampleApp -m 1024M -p wlsSampleApp.war -t 100
 ```
 
+## Additional features:
+* As part of the release phase, a script (**setupEnv.sh**) is executed before running the actual server
+  This script handles the following:
+  * Domain and server instance names are based on the application name being pushed to CF.
+  * Recreating the same directory structure in runtime env as compared to staging env 
+    The WebLogic install and domain configurations scripts are hardcoded with Staging env structure
+    But the actual directories differs in Staging (/tmp/staged) vs Runtime (/home/vcap)
+  * Add -Dapplication.name, -Dapplication.space , -Dapplication.ipaddr and -Dapplication.instance-index
+    as jvm arguments to help identify the server instance from other instances within a DEA VM
+    Example: -Dapplication.name=wls-test -Dapplication.instance-index=0
+             -Dapplication.space=sabha -Dapplication.ipaddr=10.254.0.210
+  * Renaming of the server to include space name and instance index 
+    For example: myserver becomes myspace-myserver-5 when running in space 'myspace' and instance '5'
+    Also, this ensures each instance uses its own database table for storing its transaction logs (refer to [jdbc](container-wls-jdbc.md)) 
+  * Resizing of the heap settings based on actual MEMORY_LIMIT variable in the runtime environment
+    Example: During initial cf push, memory was specified as 1GB and so heap sizes were hovering around 700M
+             Now, user uses cf scale to change memory settings to 2GB or 512MB
+    
+    The factor to use is deterined by doing Actual/Staging and heaps are resized by that factor for actual runtime execution without requiring full staging
+    Sample resizing :
+    ```
+              Detected difference in memory limits of staging and actual Execution environment !!
+                 Staging Env Memory limits: 512m
+                 Runtime Env Memory limits: 1512m
+              Changing heap settings by factor: 2.95
+              Staged JVM Args: -Xms373m -Xmx373m -XX:PermSize=128m -XX:MaxPermSize=128m  -verbose:gc ....
+              Runtime JVM Args: -Xms1100m -Xmx1100m -XX:PermSize=377m -XX:MaxPermSize=377m -verbose:gc ....
+    ```
+
 ## Examples
 
 Refer to [WlsSampleWar](resources/wls/WlsSampleApp.war), a sample web application packaged with sample configurations under the resources/wls folder of the buildpack.
@@ -416,7 +445,7 @@ There is also a sample ear file [WlsSampleApp.ear](resources/wls/WlsSampleApp.ea
 * There are 3 stages in the buildpack: **`detect`**, **`compile`** and **`release`**. These can be invoked manually for sandbox testing.
   * Explode or extract the webapp or artifact into a folder
   * Run the <weblogic-buildpack>/bin/detect <path-to-exploded-app>
-    * This should report successful detection on locating the **`.wls`** at the root of the folder
+    * This should report successful detection on locating the **`.wls`** at the root of the APP-INF or WEB-INF folder 
 
     Sample output:
     ```
@@ -620,6 +649,19 @@ For WebLogic binary bits:
           12.1.2: http://12.1.1.1:7777/fileserver/wls/wls1212_dev.zip
 
       ```
+* If the app fails to get detected by the weblogic buildpack and reports `Permission denied` problem, then it means the detect (and other scripts like compile and release) don't have execute permissions. Rebuild the zip after adding execute permissions to the files under bin folder of the weblogic buildpack.
+
+Error Message
+```
+Failed to run buildpack detection script with error: Permission denied - /var/vcap/data/dea_next/admin_buildpacks/2d2b4e9c-c0be-444c-a393-4a44cd6d6a20_c0916d71e6ba03a35924f674c46f52ff045d3310/bin/detect /tmp/staged/app
+...
+
+Staging failed: An application could not be detected by any available buildpack
+...
+Server error, status code: 400, error code: 170001, message: Staging error: cannot get instances since staging failed
+
+```
+
 * If the detect fails right away with Psych:SyntaxError messages, problem could be caused by commented portions interrupting the Ruby Psych parsing logic
 Remove or move the commented portions out of the valid sequence - so the jdk or java containers does not hit this error.
 Might be caused by the commented entries inside the config/components.yml file for frameworks or containers 
@@ -743,5 +785,6 @@ Connected, dumping recent logs for app ff in org sabha / space sabha as admin...
 [syslog drain endpoint like Splunk]: http://www.youtube.com/watch?v=rk_K_AAHEEI
 [User Provided Services]: http://docs.run.pivotal.io/devguide/services/user-provided.html
 [version syntax]: extending-repositories.md#version-syntax-and-ordering
+[Transaction Logs]: http://docs.oracle.com/cd/E23943_01/web.1111/e13701/store.htm#BABDACFH
 [WebLogic Server]: http://www.oracle.com/technetwork/middleware/weblogic/downloads/index.html
 

@@ -110,6 +110,7 @@ JDBCDatasource-2:
   # Lower the time duration for recreation of connection pool on failure or outage (like 30 seconds)
   connectionCreationRetryFrequency: 900
   testSql: SQL SELECT 1 from DUAL
+  use_for_tlog: true
 
 ```
 * Description of Parameters:
@@ -151,6 +152,10 @@ JDBCDatasource-2:
      * Use **`EmulateTwoPhaseCommit`** if the datasource needs to be participate in global transaction with XA using the emulate option.
      * Use **`LoggingLastResource`** option if the datasource can use LLR option.
 
+ * **`use_for_tlog`** will denote whether to use this datasource for storing WebLogic [Transaction Logs][] on the database rather than default file store.
+   * The Datasource should be using a non-XA Driver
+   * The `xaProtocol` type should be `OnePhaseCommit` or `None` (cannot be Global or LLR or Emulate 2-PC Commits)
+
    Note: Since the WebLogic server instance running on Cloud Foundry does not have a true restart option as well as no persistent store for saving and recovering the transaction logs, using XA and global transactions is limited to the lifetime of the server instance.
    The above XA options would work as long as the server instance is up and running but all transaction logs are lost on death of the server as any instance would a brand new entity with no awareness of its earlier state (or pending transactions).
 
@@ -161,5 +166,6 @@ JDBCDatasource-2:
 
 # References
 
+[Transaction Logs] http://docs.oracle.com/cd/E23943_01/web.1111/e13701/store.htm#BABDACFH
 [Oracle WebLogic Server JDBC Config] (http://docs.oracle.com/cd/E12839_01/web.1111/e13737/jdbc_datasources.htm)
 [Oracle WebLogic Server Transactions] (http://docs.oracle.com/cd/E12839_01/web.1111/e13737/jdbc_datasources.htm#JDBCA144)

@@ -60,6 +60,7 @@ PLATFORMS
 
 DEPENDENCIES
   codeclimate-test-reporter
+  debase
   rake
   redcarpet
   rspec

@@ -372,6 +372,20 @@ def createJmsConfig(jmsConfig, targetServer):
   createJMSServer(jmsServerName, targetServer)
   createJMSModules(jmsConfig, jmsServerName, targetServer)
 
+def configureTLogs(jdbcDataSource, targetServer):
+ try:
+  print 'Configuring Tlogs for server:',targetServer,'with Datasource:',jdbcDataSource
+  cd('/Servers/'+targetServer )
+  create(targetServer, 'TransactionLogJDBCStore')
+  cd('TransactionLogJDBCStore/' + targetServer)
+  set('PrefixName', 'TLOG_' + targetServer)
+  set('DataSource', jdbcDataSource)
+  set('Enabled', 'true')
+  cd('/')
+  print 'Associated Tlogs of server:',targetServer,'with JDBC Store via Datasource:',jdbcDataSource
+ except:
+  dumpStack()
+
 #==========================================
 # Deploy Apps
 #==========================================
@@ -446,6 +460,7 @@ def configureDomain(domainConfigProps):
   cd('/')
 
   targetServer = SERVER_NAME
+  tlogDataSource = ''
 
   for sectionName in domainConfigProps.sections():
     print '\nHandling Section: ', sectionName
@@ -454,6 +469,14 @@ def configureDomain(domainConfigProps):
       datasourceConfig = getConfigSectionMap(domainConfigProps, sectionName)
       createDataSource(datasourceConfig, targetServer)
 
+      # Check if the Datasource is non-XA and uses None or One Phase commit
+      # And marked with use_for_tlog true 
+      # Use that as tlog jdbc store
+      xaProtocol = str(datasourceConfig.get('xaProtocol'))
+      if ( 'true' == str(datasourceConfig.get('use_for_tlog')) and ( 'None' == xaProtocol or 'OnePhaseCommit' == xaProtocol or '' == xaProtocol ) ):
+          tlogDataSource = str(datasourceConfig.get('name'))
+          print 'TLog DataSoure to be assigned : ', tlogDataSource
+
     elif (sectionName.startswith("JMS")):
       jmsConfig = getConfigSectionMap(domainConfigProps, sectionName)
       createJmsConfig(jmsConfig, targetServer)
@@ -461,6 +484,10 @@ def configureDomain(domainConfigProps):
     elif (sectionName.startswith("Foreign")):
       foreignJmsConfig = getConfigSectionMap(domainConfigProps, sectionName)
       createForeignJMSResources(foreignJmsConfig, targetServer)
+  
+  # Associate the TLog Store Datasource with the Server
+  if (tlogDataSource != ''):
+    configureTLogs(tlogDataSource, targetServer)
 
   appName = domainEnvConfig.get('appName')
   appSrcPath = domainEnvConfig.get('appSrcPath')

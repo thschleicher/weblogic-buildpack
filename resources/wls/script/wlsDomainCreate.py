@@ -102,8 +102,9 @@ def createPhysicalDataSource(datasourceConfig, targetServer, dsName, jndiName, j
     # Uncomment for leak detection and tweak the timeout period according to appln needs
     #connPoolParams.setInactiveConnectionTimeoutSeconds(200)
 
+    capacityIncrementDiff      = int((maxCapacity - initCapacity))
     capacityIncrementMultiples = int((maxCapacity - initCapacity) % 10)
-    if (capacityIncrementMultiples < 0):
+    if ((capacityIncrementMultiples < 0) || (capacityIncrementDiff < 5)):
        connPoolParams.setCapacityIncrement(1)
     elif (capacityIncrementMultiples > 3):
        connPoolParams.setCapacityIncrement(5)

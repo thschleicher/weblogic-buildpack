@@ -45,33 +45,33 @@ module JavaBuildpack
 
           service_config.each do |service_entry|
 
+            puts "Service Entry: #{service_entry}"
+
             service_type = service_entry['label']
 
             log_and_print("Processing Service Binding of type: #{service_type} and definition : #{service_entry} ")
 
-            if service_type[/cleardb/]
+            if service_type[/(cleardb)|(elephantsql)|(oracle)|(postgres)|(mysql)|(mariadb)/i]
               create_jdbc_service_definition(service_entry, output_props_file)
-            elsif service_type[/elephantsql/]
-              create_jdbc_service_definition(service_entry, output_props_file)
-            elsif service_type[/cloudamqp/]
+            elsif service_type[/cloudamqp/i]
               save_amqp_jms_service_definition(service_entry, output_props_file)
             elsif service_type[/user-provided/]
               user_defined_service = service_entry
-              if user_defined_service.to_s[/jdbc/]
+              if user_defined_service.to_s[/jdbc/i]
                 # This appears to be of type JDBC
                 create_jdbc_service_definition(service_entry, output_props_file)
-              elsif user_defined_service.to_s[/amqp/]
+              elsif user_defined_service.to_s[/amqp/i]
                 # This appears to be of type AMQP
                 save_amqp_jms_service_definition(service_entry, output_props_file)
-              elsif user_defined_service.to_s[/jmsServer/]
+              elsif user_defined_service.to_s[/jmsServer/i]
                 # This appears to be of type JMS Server & related destinations
                 service_name = user_defined_service['name']
                 service_name = 'JMS-' + service_name unless service_name[/^JMS/]
                 save_from_user_defined_service_definition(user_defined_service, output_props_file, service_name)
-              elsif user_defined_service.to_s[/jndiProperties/]
+              elsif user_defined_service.to_s[/jndiProperties/i]
                 # This appears to be of type Foreign JMS Server & related destinations
                 service_name = user_defined_service['name']
-                service_name = 'ForeignJMS-' + service_name unless service_name[/^ForeignJMS/]
+                service_name = 'ForeignJMS-' + service_name unless service_name[/^ForeignJMS/i]
                 save_from_user_defined_service_definition(user_defined_service, output_props_file, service_name)
               else
                 # This appears to be an unknown type of service - just convert to wlst properties type
@@ -96,10 +96,10 @@ module JavaBuildpack
           if module_name == '.'
             # Directly save the Domain configuration
             save_base_service_definition(subsystem_config, output_props_file, 'Domain')
-          elsif module_name[/jdbc/]
+          elsif module_name[/jdbc/i]
             # Directly save the jdbc configuration
             save_jdbc_service_definition(subsystem_config, output_props_file)
-          elsif module_name[/^jms/]
+          elsif module_name[/^jms/i]
             service_name = 'JMS-' + service_name unless service_name[/^JMS/]
             # Directly save the JMS configuration
             save_base_service_definition(subsystem_config, output_props_file, service_name)
@@ -130,15 +130,15 @@ module JavaBuildpack
         end
 
         def self.mysql?(jdbc_datasource_config)
-          [/mysql/, /mariadb/].any? { |filter| matcher(jdbc_datasource_config, filter) }
+          [/mysql/i, /mariadb/i].any? { |filter| matcher(jdbc_datasource_config, filter) }
         end
 
         def self.postgres?(jdbc_datasource_config)
-          [/postgres/, /elephantsql/].any? { |filter| matcher(jdbc_datasource_config, filter) }
+          [/postgres/i, /elephantsql/i].any? { |filter| matcher(jdbc_datasource_config, filter) }
         end
 
         def self.oracle?(jdbc_datasource_config)
-          [/oracle/].any? { |filter| matcher(jdbc_datasource_config, filter) }
+          [/oracle/i].any? { |filter| matcher(jdbc_datasource_config, filter) }
         end
 
         def self.save_mysql_attrib(f)
@@ -173,12 +173,12 @@ module JavaBuildpack
           f.puts "maxCapacity=#{max_capacity}"
         end
 
-        def self.save_multipool_setting(jdbc_datasource_config, f)
+        def self.save_pool_setting(jdbc_datasource_config, f)
 
-          jdbc_url = jdbc_datasource_config['jdbcUrl']
-          # Check against postgres for jdbc_url,
-          # it only passes in uri rather than jdbc_url
-          jdbc_url = "jdbc:#{jdbc_datasource_config['uri']}" unless jdbc_url
+          f.puts "name=#{jdbc_datasource_config['name']}"
+          f.puts "jndiName=#{jdbc_datasource_config['jndiName']}"
+
+          configure_jdbc_url(jdbc_datasource_config)
 
           if jdbc_datasource_config['isMultiDS']
             f.puts 'isMultiDS=true'
@@ -186,22 +186,71 @@ module JavaBuildpack
             f.puts "jdbcUrlEndpoints=#{jdbc_datasource_config['jdbcUrlEndpoints']}"
             f.puts "mp_algorithm=#{jdbc_datasource_config['mp_algorithm']}"
           else
+
             f.puts 'isMultiDS=false'
-            f.puts "jdbcUrl=#{jdbc_url}"
+            f.puts "jdbcUrl=#{jdbc_datasource_config['jdbcUrl']}"
           end
+
+          f.puts "username=#{jdbc_datasource_config['username']}" if jdbc_datasource_config['username']
+          f.puts "password=#{jdbc_datasource_config['password']}" if jdbc_datasource_config['password']
+
+        end
+
+        def self.configure_jdbc_url(jdbc_datasource_config)
+
+          given_jdbc_url = jdbc_datasource_config['jdbcUrl']
+
+          return if given_jdbc_url
+
+          # If there are no jdbcUrl, then uri parameter is being used to pass in the Jdbc Url (as in managed services)
+
+          given_jdbc_url = jdbc_datasource_config['uri']
+
+          return unless given_jdbc_url
+
+          # Sample uri can be: jdbc:oracle://test:9U6DFinHnqeI7_L@testoracle.testhost.com:1521/XE
+          # Take out the credentials from within the uri and save those as user/password
+          # Oracle JDBC Driver has issues with urls having //user:password@host format
+          # Example: The driver oracle.jdbc.OracleDriver does not accept URL jdbc:oracle://test:9U6DFinHnqeI7_L@testoracle.testhost.com:1521/XE
+
+          # First add 'jdbc'
+          given_jdbc_url = "jdbc:#{given_jdbc_url}"
+
+          if given_jdbc_url[/@/] && given_jdbc_url[/\/\//]
+            start_index = given_jdbc_url.index('//') + 2
+            end_index   = given_jdbc_url.index('@') - 1
+            user_passwd_tokens = given_jdbc_url[start_index..end_index].split(':')
+
+            # Move the indices either before or after the markers
+            start_index -=3
+            end_index +=2
+
+            uri = jdbc_datasource_config['uri']
+            if (uri[/^oracle/i])
+              # Only newer oracle thin driver versions support jdbc:oracle:thin:@//hostname:port format,
+              # Just go with @hostname... for now
+              # jdbc_url = given_jdbc_url[0..start_index] + 'thin:@//' + given_jdbc_url[end_index..-1]
+              jdbc_url = given_jdbc_url[0..start_index] + 'thin:@' + given_jdbc_url[end_index..-1]
+            else
+              # For all others like postgres/mysql, include the '//' as they support jdbc:postgresql://host:port/database
+              jdbc_url = given_jdbc_url[0..(start_index+2)] + given_jdbc_url[end_index..-1]
+            end
+
+            jdbc_datasource_config['username'] = user_passwd_tokens[0]
+            jdbc_datasource_config['password'] = user_passwd_tokens[1]
+          else
+            jdbc_url = given_jdbc_url
+          end
+
+          # save the reconfigured jdbc url inside the map
+          jdbc_datasource_config['jdbcUrl'] = jdbc_url
+
         end
 
         def self.save_connectionrefresh_setting(jdbc_datasource_config, f)
           connection_creation_retry_frequency = JDBC_CONN_CREATION_RETRY_FREQ_SECS
           connection_creation_retry_frequency = jdbc_datasource_config['connectionCreationRetryFrequency'] unless jdbc_datasource_config['connectionCreationRetryFrequency'].nil?
           f.puts "connectionCreationRetryFrequency=#{connection_creation_retry_frequency}"
-        end
-
-        def self.save_credentials_setting(jdbc_datasource_config, f)
-          f.puts "name=#{jdbc_datasource_config['name']}"
-          f.puts "jndiName=#{jdbc_datasource_config['jndiName']}"
-          f.puts "username=#{jdbc_datasource_config['username']}" if jdbc_datasource_config['username']
-          f.puts "password=#{jdbc_datasource_config['password']}" if jdbc_datasource_config['password']
         end
 
         def self.save_other_jdbc_settings(jdbc_datasource_config, f)
@@ -224,8 +273,7 @@ module JavaBuildpack
             f.puts ''
             f.puts "[#{section_name}]"
 
-            save_credentials_setting(jdbc_datasource_config, f)
-            save_multipool_setting(jdbc_datasource_config, f)
+            save_pool_setting(jdbc_datasource_config, f)
             save_capacities(jdbc_datasource_config, f)
             save_connectionrefresh_setting(jdbc_datasource_config, f)
 
@@ -311,6 +359,36 @@ module JavaBuildpack
         def self.log_and_print(content)
           JavaBuildpack::Container::Wls::WlsUtil.log_and_print(content)
         end
+
+        #def self.test(input_service_bindings_location, output_props_file)
+        #
+        #  input_service_bindings_file = File.open(input_service_bindings_location, 'r')
+        #  service_config = YAML.load_file(input_service_bindings_file)
+        #  service_config.each do |service_entry|
+        #    create_service_definitions_from_bindings(service_entry, output_props_file)
+        #  end
+        #end
+        #
+        #
+        #input_service_bindings_location = ARGV[0]
+        #output_props_file = ARGV[1]
+        #
+        #test(input_service_bindings_location, output_props_file)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
       end
     end

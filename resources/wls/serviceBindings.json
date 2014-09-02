@@ -66,6 +66,24 @@
             ]
         }
     ],
+    "Oracle XE": [
+        {
+            "credentials": {
+                "uri": "oracle://test:9U6DFinHnqeI7_L@testoracle.testhost.com:1521/XE",
+                "port": "1521",
+                "name": "XE",
+                "username": "testuser",
+                "password": "testpaswd"
+            },
+            "label": "Oracle XE",
+            "name": "oracle-db-dev",
+            "plan": "dev",
+            "tags": [
+                "oracle",
+                "relational"
+            ]
+        }
+    ],
     "user-provided": [
         {
             "credentials": {

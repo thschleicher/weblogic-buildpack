@@ -41,7 +41,7 @@ module JavaBuildpack
         end
 
         def monitor_script
-          "/bin/sh #{@dumper_agent_script}"
+          "/bin/bash #{@dumper_agent_script}"
         end
 
         MONITORING_AGENT_DIR     = '.monitor'.freeze

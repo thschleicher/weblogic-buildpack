@@ -39,13 +39,13 @@ module JavaBuildpack
 
             int_value_in_mb =  token[/[0-9]+/].to_i
             # The values incoming can be in MB or KB
-            # Anything over 61440 is atleast in KB and needs to be converted to MB
-            int_value_in_mb = (int_value_in_mb / 1_024) if int_value_in_mb > 614_40
+            # Anything over 10240 is mostly in KB and needs to be converted to MB
+            int_value_in_mb = (int_value_in_mb / 1_024) if int_value_in_mb > 10240
 
             if token[/-XX:PermSize/]
-              jvm_default_map['min_perm_size'] = int_value_in_mb if int_value_in_mb > 128
+              jvm_default_map['min_perm_size'] = int_value_in_mb if (int_value_in_mb > 128)
             elsif token[/-XX:MaxPermSize/]
-              jvm_default_map['max_perm_size'] = int_value_in_mb if int_value_in_mb > 128
+              jvm_default_map['max_perm_size'] = int_value_in_mb if (int_value_in_mb > 128)
             elsif token[/-Xms/]
               jvm_default_map['min_heap_size'] = int_value_in_mb
             elsif token[/-Xmx/]

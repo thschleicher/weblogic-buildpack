@@ -103,12 +103,13 @@ module JavaBuildpack
         monitor_script = monitor_agent.monitor_script
 
         releaser = JavaBuildpack::Container::Wls::WlsReleaser.new(@application, @droplet, @domain_home, @server_name, @start_in_wlx_mode)
-        setup_env_script = releaser.setup
+        pre_start_script = releaser.pre_start
+        post_shutdown_script  = releaser.post_shutdown
 
         [
           @droplet.java_home.as_env_var,
           "USER_MEM_ARGS=\"#{@droplet.java_opts.join(' ')}\"",
-          "sleep 10; #{setup_env_script}; #{monitor_script} ; #{@domain_home}/startWebLogic.sh"
+          "sleep 10; #{pre_start_script}; #{monitor_script} ; #{@domain_home}/startWebLogic.sh; #{post_shutdown_script}"
         ].flatten.compact.join(' ')
       end
 

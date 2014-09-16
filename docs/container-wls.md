@@ -408,23 +408,22 @@ cf push wlsSampleApp -m 1024M -p wlsSampleApp.war -t 100
 ```
 
 ## Additional features:
-* As part of the release phase, a script [preStart.sh](../resources/wls/hooks/preStart.sh) is executed before starting the actual server
-  This script handles the following:
+* As part of the release phase, a [preStart.sh](../resources/wls/hooks/preStart.sh) script is executed before starting the actual server. This script handles the following:
   * Recreating the same directory structure in runtime env as compared to staging env 
-    The WebLogic install and domain configurations scripts are hardcoded with Staging env structure
+    The WebLogic install and domain configurations scripts are hardcoded with Staging env structure.
     But the actual directories differs in Staging (/tmp/staged) vs Runtime (/home/vcap)
   * Add -Dapplication.name, -Dapplication.space , -Dapplication.ipaddr and -Dapplication.instance-index
-    as JVM arguments to help identify the server instance from other instances within a DEA VM
+    as JVM arguments to help identify the server instance from other instances within a DEA VM.
     Example: -Dapplication.name=wls-test -Dapplication.instance-index=0
              -Dapplication.space=sabha -Dapplication.ipaddr=10.254.0.210
   * Renaming of the server to include instance index 
-    For example: myserver becomes myserver-5 when running with app instance '5'
+    For example: myserver becomes myserver-5 when running with app instance '5'.
     This ensures each instance uses its own database TLOG table for storing its transaction logs (refer to [jdbc](container-wls-jdbc.md)) 
-  * Resizing of the heap settings based on actual MEMORY_LIMIT variable in the runtime environment
-    Example: During initial cf push, memory was specified as 1GB and so heap sizes were hovering around 700M
+  * Resizing of the heap settings based on actual MEMORY_LIMIT variable in the runtime environment.
+    Example: During initial cf push, memory was specified as 1GB and so heap sizes were hovering around 700M.
              Now, user uses cf scale to change memory settings to 2GB or 512MB
     
-    The factor to use is deterined by doing division of Actual vs. Staging and heaps are resized by that factor for actual runtime execution without requiring full staging for new instances
+    The factor to use is deterined by doing division of Actual vs. Staging and heaps are resized by that factor for actual runtime execution without requiring full staging for new instances.
     Sample resizing :
     ```
               Detected difference in memory limits of staging and actual Execution environment !!
@@ -435,7 +434,7 @@ cf push wlsSampleApp -m 1024M -p wlsSampleApp.war -t 100
               Runtime JVM Args: -Xms1100m -Xmx1100m -XX:PermSize=377m -XX:MaxPermSize=377m -verbose:gc ....
     ```
 * As part of the release phase, a [postStop.sh](../resources/wls/hooks/postStop.sh) script is executed after the actual server has stopped or crashed.
-  This script will report the death of the instance along with instructions on downloading any relevant files 
+  This script will report the death of the instance along with instructions on downloading any relevant files
   from the specific instance and also provide a default grace period of 30 seconds before the warden container gets destroyed.
   Modify the postStop.sh script as needed to copy/transfer files to a central shared repository for further analysis.
   Sample output:
@@ -644,7 +643,7 @@ TIP: Use 'cf push' to ensure your env variable changes take effect
 
 ## Potential Issues
 
-* Oracle WebLogic 12c (v12.1.2) Development release bits containing purely WebLogic Server packaged as a zip file (under 200 MB ) can be used with just the JRE. However, full installs (over 800MB of WebLogic Server bundled with or without other products bits) in form of Jar file would require full JDK and not just JRE. The buildpack would fail during the install of the WebLogic install binaries if just used against JRE. This will also affect the size of the droplet, pushing it beyond 1GB in size. Ensure corresponding increase in the client_max_body_size settings in the cf deployment manifest.
+* Oracle WebLogic 12c (v12.1.2) Development release bits containing only WebLogic Server packaged as a zip file (under 200 MB ) can be used with just the JRE. However, full installs (over 800MB) of WebLogic Server, bundled with or without other products bits, in form of Jar file would require full JDK and not just JRE. The buildpack would fail during the install of the WebLogic install binaries if just used against JRE. This will also affect the size of the droplet, pushing it beyond 1GB in size. Ensure corresponding increase in the client_max_body_size settings in the cf deployment manifest.
 
 * If the application push fails during the **`Uploading droplet`** phase, either the client_max_body_size is too small or the controller managing bosh-lite is running out of disk space. Either edit the deployment manifest and redeploy to bosh or clean up the **`/var/vcap/store/10.244.0.34.xip.io-cc-droplets/`** folder contents inside the api_z1/0 instance (use bosh ssh api_z1 0 command to login into the controller).
 
@@ -668,19 +667,18 @@ from /var/vcap/packages/dea_next/buildpacks/bin/run:10:in `<main>'
 -----> Downloading Oracle JRE 1.7.0_60 from jre-7u60-linux-x64.gz 
 ```
 
-Ensure the index.yml files for the jdk or weblogic binaries has the complete url including the host and protocol scheme specified:
+Ensure the index.yml files for the jdk or weblogic binaries has the complete url including the host and protocol scheme specified.
 For jdk/jre:
-      ```
-	    ---
-          1.7.0_51: http://12.1.1.1:7777/fileserver/jdk/jdk-7u55-linux-x64.tar.gz
 
+      ```
+        ---
+          1.7.0_51: http://12.1.1.1:7777/fileserver/jdk/jdk-7u55-linux-x64.tar.gz
       ```
 
 For WebLogic binary bits:
       ```
         ---
           12.1.2: http://12.1.1.1:7777/fileserver/wls/wls1212_dev.zip
-
       ```
 * If the app fails to get detected by the weblogic buildpack and reports `Permission denied` problem, then it means the detect (and other scripts like compile and release) don't have execute permissions. Rebuild the zip after adding execute permissions to the files under bin folder of the weblogic buildpack.
 
@@ -730,32 +728,32 @@ Cloning into '/tmp/buildpacks/weblogic-buildpack'...
  Then run `cf push` again followed by `cf logs --recent` to get the full details for the cause of the failure.
 
 ```
-hammerkop:workspace sparameswaran$ cf set-env ff JBP_LOG_LEVEL debug
-Setting env variable 'JBP_LOG_LEVEL' to 'debug' for app ff in org sabha / space sabha as admin...
+hammerkop:workspace sparameswaran$ cf set-env test-appJBP_LOG_LEVEL debug
+Setting env variable 'JBP_LOG_LEVEL' to 'debug' for app test-app in org sabha / space sabha as admin...
 OK
 TIP: Use 'cf push' to ensure your env variable changes take effect
 
-hammerkop:workspace sparameswaran$ cf push ff -p test -t 100
-Updating app ff in org sabha / space sabha as admin...
+hammerkop:workspace sparameswaran$ cf push test-app -p test -t 100
+Updating app test-app in org sabha / space sabha as admin...
 OK
 
-Uploading ff...
+Uploading test-app...
 Uploading app files from: test
 Uploading 19.9K, 7 files
 OK
 
-Stopping app ff in org sabha / space sabha as admin...
+Stopping app test-app in org sabha / space sabha as admin...
 OK
 
-Starting app ff in org sabha / space sabha as admin...
+Starting app test-app in org sabha / space sabha as admin...
 OK
 
 FAILED
 Server error, status code: 400, error code: 170001, message: Staging error: cannot get instances since staging failed
 
-TIP: use 'cf logs ff --recent' for more information
-hammerkop:workspace sparameswaran$ cf logs ff --recent
-Connected, dumping recent logs for app ff in org sabha / space sabha as admin...
+TIP: use 'cf logs test-app --recent' for more information
+hammerkop:workspace sparameswaran$ cf logs test-app --recent
+Connected, dumping recent logs for app test-app in org sabha / space sabha as admin...
 
 .....
 2014-06-19T13:04:53.02-0700 [STG]     ERR [Buildpack]                      DEBUG Instantiating JavaBuildpack::Container::Weblogic

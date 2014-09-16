@@ -1,8 +1,8 @@
 # Cloud Foundry WebLogic Buildpack
 [![Build Status](https://travis-ci.org/pivotal-cf/weblogic-buildpack.svg?branch=master)](https://travis-ci.org/pivotal-cf/weblogic-buildpack)
 [![Dependency Status](https://gemnasium.com/pivotal-cf/weblogic-buildpack.svg)](https://gemnasium.com/pivotal-cf/weblogic-buildpack)
-[![Code Climate](https://codeclimate.com/github/pivotal-cf/weblogic-buildpack.png)](https://codeclimate.com/github/pivotal-cf/weblogic-buildpack/feed)
-
+[![Code Climate](https://codeclimate.com/github/pivotal-cf/weblogic-buildpack/badges/gpa.svg)](https://codeclimate.com/github/pivotal-cf/weblogic-buildpack/feed)
+[![Code Climate](https://codeclimate.com/github/pivotal-cf/weblogic-buildpack/badges/coverage.svg)](https://codeclimate.com/github/pivotal-cf/weblogic-buildpack/feed)
 
 The `weblogic-buildpack` is a custom [Cloud Foundry] buildpack, based on a fork of the [Java-Buildpack][], for running JEE applications with WebLogic Server as container on Cloud Foundry.
 
@@ -131,5 +131,3 @@ This buildpack is released under version 2.0 of the [Apache License][].
 [WebLogic Server]: http://www.oracle.com/technetwork/middleware/weblogic/downloads/index.html
 [limited footprint]: http://docs.oracle.com/middleware/1212/wls/START/overview.htm#START234
 [syslog drain endpoint like Splunk]: http://www.youtube.com/watch?v=rk_K_AAHEEI
-
-

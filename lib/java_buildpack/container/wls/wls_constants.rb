@@ -27,8 +27,6 @@ module JavaBuildpack
         SERVER_VM            = '-server'.freeze
         CLIENT_VM            = '-client'.freeze
 
-        PRE_START_SCRIPT     = 'preStart.sh'.freeze
-        POST_SHUTDOWN_SCRIPT = 'postShutdown.sh'.freeze
         WLS_CONFIGURE_SCRIPT = 'configure.sh'.freeze
 
         # Prefer App Bundled Config or Buildpack bundled Config

@@ -104,7 +104,7 @@ def createPhysicalDataSource(datasourceConfig, targetServer, dsName, jndiName, j
 
     capacityIncrementDiff      = int((maxCapacity - initCapacity))
     capacityIncrementMultiples = int((maxCapacity - initCapacity) % 10)
-    if ((capacityIncrementMultiples < 0) || (capacityIncrementDiff < 5)):
+    if ((capacityIncrementMultiples < 0) or (capacityIncrementDiff < 5)):
        connPoolParams.setCapacityIncrement(1)
     elif (capacityIncrementMultiples > 3):
        connPoolParams.setCapacityIncrement(5)
@@ -379,7 +379,7 @@ def configureTLogs(jdbcDataSource, targetServer):
   cd('/Servers/'+targetServer )
   create(targetServer, 'TransactionLogJDBCStore')
   cd('TransactionLogJDBCStore/' + targetServer)
-  set('PrefixName', 'TLOG_' + targetServer)
+  set('PrefixName', targetServer)
   set('DataSource', jdbcDataSource)
   set('Enabled', 'true')
   cd('/')

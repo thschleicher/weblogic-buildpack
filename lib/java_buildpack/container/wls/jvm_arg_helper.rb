@@ -38,9 +38,10 @@ module JavaBuildpack
           java_opt_tokens.each do |token|
 
             int_value_in_mb =  token[/[0-9]+/].to_i
+
             # The values incoming can be in MB or KB
-            # Anything over 10240 is mostly in KB and needs to be converted to MB
-            int_value_in_mb = (int_value_in_mb / 1_024) if int_value_in_mb > 10240
+            # Convert all to MB
+            int_value_in_mb = (int_value_in_mb / 1_024) if token[/k$/i]
 
             if token[/-XX:PermSize/]
               jvm_default_map['min_perm_size'] = int_value_in_mb if (int_value_in_mb > 128)

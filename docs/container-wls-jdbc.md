@@ -156,6 +156,26 @@ JDBCDatasource-2:
    * The Datasource should be using a non-XA Driver
    * The `xaProtocol` type should be `OnePhaseCommit` or `None` (cannot be Global or LLR or Emulate 2-PC Commits)
 
+   * Actual generated TLog table name would be ${app}Server${instanceIndex}WLSTORE
+     Example: for a 'test-cf' app with app instance '0', the table name would be test-cfServer0WLSTORE
+     Ensure the app name is not too long so the total string does not exceed 30... otherwise following error would be thrown
+     Use this with caution, due to the length limitation as well as possibility for same app deployed to different spaces but using same database logins can lead to duplicates.
+     Adding the space name to the field/table name leads to more possiblity for hitting the 30 character limits.
+     ```
+     For a app with name: sabha-wls-tlog-test, generated name is SABHAWLS_TLOG_TESTSERVER1WLSTORE
+     2014-09-16T11:54:04.99-0700 [App/0]   OUT <Sep 16, 2014 6:54:04 PM UTC> <Error> <Store> <BEA-280072> <JDBC store "sabha-wls-tlog-testServer-0JTA_JDBCTLOGStore" failed to open table "TLOG_sabha-wls-tlog-testServer-0WLStore".
+     2014-09-16T11:54:04.99-0700 [App/0]   OUT java.sql.SQLException: [Store:280063]The "table" field value "SABHAWLS_TLOG_TESTSERVER1WLSTORE" in table reference "SABHAWLS-TLOG-TESTSERVER1WLSTORE" (format [[[catalog.]schema.]table) is too long. The database supports a maximum length of "30" for this field.
+     2014-09-16T11:54:04.99-0700 [App/0]   OUT 	at weblogic.store.io.jdbc.JDBCHelper.checkLength(JDBCHelper.java:203)
+     2014-09-16T11:54:04.99-0700 [App/0]   OUT 	at weblogic.store.io.jdbc.JDBCHelper.createTableIdentifier(JDBCHelper.java:246)
+     2014-09-16T11:54:04.99-0700 [App/0]   OUT 	at weblogic.store.io.jdbc.JDBCHelper.getDMLIdentifier(JDBCHelper.java:177)
+     2014-09-16T11:54:04.99-0700 [App/0]   OUT 	at weblogic.store.io.jdbc.JDBCStoreIO.initialize(JDBCStoreIO.java:691)
+
+     ```
+
+     Long app and space names can stop the tlog creation as the actual table name is comprised of the ${Space}${app}Server${instanceIndex}WLSTORE
+
+
+
    Note: Since the WebLogic server instance running on Cloud Foundry does not have a true restart option as well as no persistent store for saving and recovering the transaction logs, using XA and global transactions is limited to the lifetime of the server instance.
    The above XA options would work as long as the server instance is up and running but all transaction logs are lost on death of the server as any instance would a brand new entity with no awareness of its earlier state (or pending transactions).
 

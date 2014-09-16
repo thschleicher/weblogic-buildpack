@@ -107,7 +107,8 @@ module JavaBuildpack
           Net::HTTPTemporaryRedirect
         ].freeze
 
-        TIMEOUT_SECONDS = 10.freeze
+        # Changing from 10 to 20 seconds to ensure the download does not timeout when running on bosh-lite
+        TIMEOUT_SECONDS = 20.freeze
 
         private_constant :FAILURE_LIMIT, :HTTP_ERRORS, :REDIRECT_TYPES, :TIMEOUT_SECONDS
 

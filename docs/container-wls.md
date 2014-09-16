@@ -19,7 +19,7 @@ The complete bundle of the server and application bits would be used to create a
 
 * Standard domain configurations are supported and able to be overridden by the application or the buildpack.
 
-* Scale of the application via ‘cf scale’, not through increasing number of managed servers in the domain.
+* Scale the number of application instances via ‘cf scale’, not through increasing number of managed servers in the domain.
 
 * The Application can be a single WAR (Web Archive) or EAR (multiple war/jar modules bundled within one Enterprise Archive).
 
@@ -397,7 +397,7 @@ A domain would be created based on the configurations and script passed with the
 The droplet containing the entire WebLogic install, domain and application bits would be get executed (with the app specified jvm settings and generated/configured services) by Cloud Foundry.
 A single server instance would be started as part of the droplet execution. The WebLogic Listen Port of the server would be controlled by the warden container managing the droplet.
 
-The application can be scaled up or down using cf scale command. This would trigger multiple copies of the same droplet (identical server configuration and application bits but different server listen ports) to be executing in parallel.
+The number of application instances can be scaled up or down using cf scale command. This would trigger multiple copies of the same droplet (identical server configuration and application bits but different server listen ports) to be executing in parallel.
 
 Note: Ensure `cf push` uses **`-m`** argument to specify a minimum process memory footprint of 1024 MB (1GB). Failure to do so will result in very small memory size for the droplet container and the jvm startup can fail. 
 '-t' option can be used to specify the timeout period (time for server to come up and start listening before warden kills it)
@@ -408,24 +408,23 @@ cf push wlsSampleApp -m 1024M -p wlsSampleApp.war -t 100
 ```
 
 ## Additional features:
-* As part of the release phase, a script (**setupEnv.sh**) is executed before running the actual server
+* As part of the release phase, a script [preStart.sh](../resources/wls/hooks/preStart.sh) is executed before starting the actual server
   This script handles the following:
-  * Domain and server instance names are based on the application name being pushed to CF.
   * Recreating the same directory structure in runtime env as compared to staging env 
     The WebLogic install and domain configurations scripts are hardcoded with Staging env structure
     But the actual directories differs in Staging (/tmp/staged) vs Runtime (/home/vcap)
   * Add -Dapplication.name, -Dapplication.space , -Dapplication.ipaddr and -Dapplication.instance-index
-    as jvm arguments to help identify the server instance from other instances within a DEA VM
+    as JVM arguments to help identify the server instance from other instances within a DEA VM
     Example: -Dapplication.name=wls-test -Dapplication.instance-index=0
              -Dapplication.space=sabha -Dapplication.ipaddr=10.254.0.210
-  * Renaming of the server to include space name and instance index 
-    For example: myserver becomes myspace-myserver-5 when running in space 'myspace' and instance '5'
-    Also, this ensures each instance uses its own database table for storing its transaction logs (refer to [jdbc](container-wls-jdbc.md)) 
+  * Renaming of the server to include instance index 
+    For example: myserver becomes myserver-5 when running with app instance '5'
+    This ensures each instance uses its own database TLOG table for storing its transaction logs (refer to [jdbc](container-wls-jdbc.md)) 
   * Resizing of the heap settings based on actual MEMORY_LIMIT variable in the runtime environment
     Example: During initial cf push, memory was specified as 1GB and so heap sizes were hovering around 700M
              Now, user uses cf scale to change memory settings to 2GB or 512MB
     
-    The factor to use is deterined by doing Actual/Staging and heaps are resized by that factor for actual runtime execution without requiring full staging
+    The factor to use is deterined by doing division of Actual vs. Staging and heaps are resized by that factor for actual runtime execution without requiring full staging for new instances
     Sample resizing :
     ```
               Detected difference in memory limits of staging and actual Execution environment !!
@@ -435,6 +434,38 @@ cf push wlsSampleApp -m 1024M -p wlsSampleApp.war -t 100
               Staged JVM Args: -Xms373m -Xmx373m -XX:PermSize=128m -XX:MaxPermSize=128m  -verbose:gc ....
               Runtime JVM Args: -Xms1100m -Xmx1100m -XX:PermSize=377m -XX:MaxPermSize=377m -verbose:gc ....
     ```
+* As part of the release phase, a [postStop.sh](../resources/wls/hooks/postStop.sh) script is executed after the actual server has stopped or crashed.
+  This script will report the death of the instance along with instructions on downloading any relevant files 
+  from the specific instance and also provide a default grace period of 30 seconds before the warden container gets destroyed.
+  Modify the postStop.sh script as needed to copy/transfer files to a central shared repository for further analysis.
+  Sample output:
+  ```
+     2014-09-16T13:31:54.08-0700 [App/1]   OUT App Instance went down either due to user action or other reasons!!
+     2014-09-16T13:31:54.08-0700 [App/1]   OUT                   App Details
+     2014-09-16T13:31:54.08-0700 [App/1]   OUT ---------------------------------------------------------------
+     2014-09-16T13:31:54.08-0700 [App/1]   OUT  Name of Application    : wls-tlog-test
+     2014-09-16T13:31:54.08-0700 [App/1]   OUT  App GUID               : 4d2030f9-c871-48c3-b1b0-a1d2760fb164
+     2014-09-16T13:31:54.08-0700 [App/1]   OUT  Space                  : sabha
+     2014-09-16T13:31:54.08-0700 [App/1]   OUT  Instance Index         : 1
+     2014-09-16T13:31:54.08-0700 [App/1]   OUT  Warden Container Name  : 182o1o2j6v9
+     2014-09-16T13:31:54.08-0700 [App/1]   OUT  Warden Container IP    : 10.254.1.78
+     2014-09-16T13:31:54.08-0700 [App/1]   OUT  Start time             : 2014-09-16 19:29:55 +0000
+     2014-09-16T13:31:54.08-0700 [App/1]   OUT  Stop time              : 2014-09-16 20:31:54 +0000
+     2014-09-16T13:31:54.08-0700 [App/1]   OUT ---------------------------------------------------------------
+     2014-09-16T13:31:54.08-0700 [App/1]   OUT Shutdown wait interval set to 30 seconds (using env var 30, default 30)
+     2014-09-16T13:31:54.08-0700 [App/1]   OUT Modify this script as needed to upload core files, logs or other dumps to some remote file server
+     2014-09-16T13:31:54.08-0700 [App/1]   OUT Use cf curl to download the relevant files from this particular instance
+     2014-09-16T13:31:54.08-0700 [App/1]   OUT     cf curl /v2/apps/4d2030f9-c871-48c3-b1b0-a1d2760fb164/instances/1/files
+     2014-09-16T13:31:54.08-0700 [App/1]   OUT Container will exit after 30 seconds!!
+     2014-09-16T13:32:24.09-0700 [App/1]   OUT Container exiting!!!
+
+  ```
+  The grace period before complete removal of the container can be controlled by specifying the **SHUTDOWN_WAIT_INTERVAL** environment variable (use cf set-env option) for the application. This value will be treated as the number of seconds to wait before the container can be cleaned up (after exit of the main java app instance).
+
+  Sample command:
+  ```
+     cf set-env wls-tlog-test SHUTDOWN_WAIT_INTERVAL 120
+  ```
 
 ## Examples
 
@@ -494,11 +525,13 @@ There is also a sample ear file [WlsSampleApp.ear](resources/wls/WlsSampleApp.ea
     addons: []
     config_vars: {}
     default_process_types:
-      web: JAVA_HOME=$PWD/.java-buildpack/oracle_jre USER_MEM_ARGS="-Xms512m -Xmx1024m
-        -XX:PermSize=128m -XX:MaxPermSize=256m  -verbose:gc -Xloggc:gc.log -XX:+PrintGCDetails
-        -XX:+PrintGCTimeStamps  -Djava.io.tmpdir=$TMPDIR -XX:OnOutOfMemoryError=$PWD/.java-buildpack/oracle_jre/bin/killjava.sh  -Dweblogic.ListenPort=$PORT"
-        /bin/sh ./setupEnv.sh; /bin/sh /Users/sparameswaran/workspace/wlsSampleApp4/.monitor/dumperAgent.sh; /Users/sparameswaran/workspace/wlsSampleApp/.java-buildpack/weblogic/domains/cfDomain/startWebLogic.sh
-
+      web: JAVA_HOME=$PWD/.java-buildpack/oracle_jre USER_MEM_ARGS="-Xms404m -Xmx404m
+        -XX:PermSize=128m -XX:MaxPermSize=128m  -verbose:gc -Xloggc:gc.log -XX:+PrintGCDetails
+        -XX:+PrintGCTimeStamps -XX:-DisableExplicitGC -Djava.security.egd=file:/dev/./urandom  -Djava.io.tmpdir=$TMPDIR
+        -XX:OnOutOfMemoryError=$PWD/.java-buildpack/oracle_jre/bin/killjava.sh -Dweblogic.ListenPort=$PORT"
+        sleep 10; /bin/bash ./preStart.sh; /bin/bash /Users/sparameswaran/workspace/wlsSampleApp/.monitor/dumperAgent.sh
+        ; /Users/sparameswaran/workspace/wlsSampleApp/WEB-INF/wlsInstall/domains/wlsSampleAppDomain/startWebLogic.sh;
+        /bin/bash ./postStop.sh
     ```
 
 * The buildpack would log the status and progress during the various execution stages into the .java-buildpack.log folder underneath the exploded-app directory.

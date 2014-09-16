@@ -32,18 +32,21 @@ module JavaBuildpack
           @server_name       = server_name
           @start_in_wlx_mode = start_in_wlx_mode
 
+          create_scripts
         end
 
-        # Create a setup script that will handle following
-        # 1. Recreate staging directories as the install and domains use the staging env
-        # 2. Update java vm arguments
-        # 3. Modify the server name using instance index
-        def pre_start
+        def create_scripts
+          system "/bin/cp #{START_STOP_HOOKS_SRC_PATH}/* #{@application.root}/"
+          system "chmod +x #{@application.root}/*.sh"
 
-          setup_prestart_script
-          save_application_details
-          add_jvm_args
-          rename_server_instance
+          @pre_start_script = Dir.glob("#{@application.root}/#{PRE_START_SCRIPT}")[0]
+          @post_stop_script = Dir.glob("#{@application.root}/#{POST_STOP_SCRIPT}")[0]
+
+          modify_pre_start_script
+
+        end
+
+        def pre_start
 
           "/bin/bash ./#{PRE_START_SCRIPT}"
         end
@@ -53,12 +56,54 @@ module JavaBuildpack
         # 2. Sleep for a predetermined period so users can download files if needed
         def post_shutdown
 
-          setup_postshutdown_script
-
-          "/bin/bash ./#{POST_SHUTDOWN_SCRIPT}"
+          "/bin/bash ./#{POST_STOP_SCRIPT}"
         end
 
         private
+
+        HOOKS_RESOURCE       = 'hooks'.freeze
+        PRE_START_SCRIPT     = 'preStart.sh'.freeze
+        POST_STOP_SCRIPT     = 'postStop.sh'.freeze
+
+        START_STOP_HOOKS_SRC_PATH = "#{BUILDPACK_CONFIG_CACHE_DIR}/#{HOOKS_RESOURCE}".freeze
+
+
+        # Create a setup script that will handle following
+        # 1. Recreate staging directories as the install and domains use the staging env
+        # 2. Scale up jvm memory (only min/max heap and perm sizes) as needed based on difference between original staging and current running env MEMORY_LIMITS.
+        # 3. Update java vm arguments with additional args (app name, space, warden container details, and any user defined jvm memory settings)
+        # 4. Modify the server name using instance index
+
+        def modify_pre_start_script
+
+          # Load the app bundled configurations and re-configure as needed the JVM parameters for the Server VM
+          log("JVM config passed via droplet java_opts : #{@droplet.java_opts}")
+
+          JavaBuildpack::Container::Wls::JvmArgHelper.update(@droplet.java_opts)
+          JavaBuildpack::Container::Wls::JvmArgHelper.add_wlx_server_mode(@droplet.java_opts, @start_in_wlx_mode)
+          log("Consolidated Java Options for Server: #{@droplet.java_opts.join(' ')}")
+
+          staging_memory_limit=ENV['MEMORY_LIMIT']
+          staging_memory_limit='512m' unless staging_memory_limit
+
+
+
+          script_path = @pre_start_script.to_s
+
+          original = File.open(script_path, 'r') { |f| f.read }
+
+          modified = original.gsub(/REPLACE_JAVA_ARGS_MARKER/, @droplet.java_opts.join(' '))
+          modified = modified.gsub(/REPLACE_DOMAIN_HOME_MARKER/, @domain_home.to_s)
+          modified = modified.gsub(/REPLACE_SERVER_NAME_MARKER/, @server_name)
+          modified = modified.gsub(/REPLACE_WLS_PRE_JARS_CACHE_DIR_MARKER/, WLS_PRE_JARS_CACHE_DIR)
+          modified = modified.gsub(/REPLACE_WLS_POST_JARS_CACHE_DIR_MARKER/, WLS_POST_JARS_CACHE_DIR)
+          modified = modified.gsub(/REPLACE_STAGING_MEMORY_LIMIT_MARKER/, staging_memory_limit)
+
+          File.open(script_path, 'w') { |f| f.write modified }
+
+          log('Updated preStart.sh files!!')
+
+        end
 
         # Create a setup script that would recreate staging env's path structure inside the actual DEA
         # runtime env and also embed additional jvm arguments at server startup

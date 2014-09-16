@@ -24,4 +24,17 @@ JDBCDatasource-2:
   # Lower the time duration for recreation of connection pool on failure or outage (like 30 seconds)
   connectionCreationRetryFrequency: 900
   testSql: SQL SELECT 1 from DUAL
-
+# Use use_for_tlog attribute only if the server has to store TLogs on the database, defaults to false
+# The driver also needs to be Non-XA
+  #use_for_tlog: true
+# Actual generated TLog table name would be ${app}Server${instanceIndex}WLSTORE
+# Example: for a 'test-cf' app with app instance '0', the table name would be test-cfServer0WLSTORE
+# Ensure the app name is not too long so the total string does not exceed 30... otherwise following error would be thrown
+# 2014-09-16T11:54:04.99-0700 [App/0]   OUT <Sep 16, 2014 6:54:04 PM UTC> <Error> <Store> <BEA-280072> <JDBC store "sabha-wls-tlog-testServer-0JTA_JDBCTLOGStore" failed to open table "TLOG_sabha-wls-tlog-testServer-0WLStore".
+# 2014-09-16T11:54:04.99-0700 [App/0]   OUT java.sql.SQLException: [Store:280063]The "table" field value "TLOG_SABHA_WLS_TLOG_TESTSERVER_0WLSTORE" in table reference "TLOG_SABHA-WLS-TLOG-TESTSERVER-0WLSTORE" (format [[[catalog.]schema.]table) is too long. The database supports a maximum length of "30" for this field.
+# 2014-09-16T11:54:04.99-0700 [App/0]   OUT 	at weblogic.store.io.jdbc.JDBCHelper.checkLength(JDBCHelper.java:203)
+# 2014-09-16T11:54:04.99-0700 [App/0]   OUT 	at weblogic.store.io.jdbc.JDBCHelper.createTableIdentifier(JDBCHelper.java:246)
+# 2014-09-16T11:54:04.99-0700 [App/0]   OUT 	at weblogic.store.io.jdbc.JDBCHelper.getDMLIdentifier(JDBCHelper.java:177)
+# 2014-09-16T11:54:04.99-0700 [App/0]   OUT 	at weblogic.store.io.jdbc.JDBCStoreIO.initialize(JDBCStoreIO.java:691)
+# Long app and space names can stop the tlog creation as the actual table name is comprised of the ${Space}${app}Server${instanceIndex}WLSTORE
+# Use this with caution due to the length limitation as well as possibility for same app deployed to different spaces but using same database logins can lead to duplicates.

@@ -19,6 +19,7 @@ require 'java_buildpack/container'
 require 'pathname'
 require 'yaml'
 
+# rubocop:disable Metrics/ClassLength
 module JavaBuildpack
   module Container
     module Wls
@@ -42,13 +43,9 @@ module JavaBuildpack
         end
 
         def self.create_service_definitions_from_bindings(service_config, output_props_file)
-
           service_config.each do |service_entry|
-
             puts "Service Entry: #{service_entry}"
-
             service_type = service_entry['label']
-
             log_and_print("Processing Service Binding of type: #{service_type} and definition : #{service_entry} ")
 
             if service_type[/(cleardb)|(elephantsql)|(oracle)|(postgres)|(mysql)|(mariadb)/i]
@@ -56,33 +53,37 @@ module JavaBuildpack
             elsif service_type[/cloudamqp/i]
               save_amqp_jms_service_definition(service_entry, output_props_file)
             elsif service_type[/user-provided/]
-              user_defined_service = service_entry
-              if user_defined_service.to_s[/jdbc/i]
-                # This appears to be of type JDBC
-                create_jdbc_service_definition(service_entry, output_props_file)
-              elsif user_defined_service.to_s[/amqp/i]
-                # This appears to be of type AMQP
-                save_amqp_jms_service_definition(service_entry, output_props_file)
-              elsif user_defined_service.to_s[/jmsServer/i]
-                # This appears to be of type JMS Server & related destinations
-                service_name = user_defined_service['name']
-                service_name = 'JMS-' + service_name unless service_name[/^JMS/]
-                save_from_user_defined_service_definition(user_defined_service, output_props_file, service_name)
-              elsif user_defined_service.to_s[/jndiProperties/i]
-                # This appears to be of type Foreign JMS Server & related destinations
-                service_name = user_defined_service['name']
-                service_name = 'ForeignJMS-' + service_name unless service_name[/^ForeignJMS/i]
-                save_from_user_defined_service_definition(user_defined_service, output_props_file, service_name)
-              else
-                # This appears to be an unknown type of service - just convert to wlst properties type
-                # and let the script figure out what to do
-                log_and_print("Unknown User defined Service bindings !!!... #{user_defined_service}")
-                service_name = user_defined_service['name']
-                save_from_user_defined_service_definition(user_defined_service, output_props_file, service_name)
-              end
+              create_user_provided_service_definitions_from_bindings(service_entry, output_props_file)
             else
               log_and_print("Unknown Service bindings !!!... #{service_entry}")
             end
+          end
+        end
+
+        def self.create_user_provided_service_definitions_from_bindings(service_entry, output_props_file)
+          user_defined_service = service_entry
+          if user_defined_service.to_s[/jdbc/i]
+            # This appears to be of type JDBC
+            create_jdbc_service_definition(service_entry, output_props_file)
+          elsif user_defined_service.to_s[/amqp/i]
+            # This appears to be of type AMQP
+            save_amqp_jms_service_definition(service_entry, output_props_file)
+          elsif user_defined_service.to_s[/jmsServer/i]
+            # This appears to be of type JMS Server & related destinations
+            service_name = user_defined_service['name']
+            service_name = 'JMS-' + service_name unless service_name[/^JMS/]
+            save_from_user_defined_service_definition(user_defined_service, output_props_file, service_name)
+          elsif user_defined_service.to_s[/jndiProperties/i]
+            # This appears to be of type Foreign JMS Server & related destinations
+            service_name = user_defined_service['name']
+            service_name = 'ForeignJMS-' + service_name unless service_name[/^ForeignJMS/i]
+            save_from_user_defined_service_definition(user_defined_service, output_props_file, service_name)
+          else
+            # This appears to be an unknown type of service - just convert to whilst properties type
+            # and let the script figure out what to do
+            log_and_print("Unknown User defined Service bindings !!!... #{user_defined_service}")
+            service_name = user_defined_service['name']
+            save_from_user_defined_service_definition(user_defined_service, output_props_file, service_name)
           end
         end
 
@@ -216,24 +217,24 @@ module JavaBuildpack
           # First add 'jdbc'
           given_jdbc_url = "jdbc:#{given_jdbc_url}"
 
-          if given_jdbc_url[/@/] && given_jdbc_url[/\/\//]
+          if given_jdbc_url[/@/] && given_jdbc_url[%r{//}]
             start_index = given_jdbc_url.index('//') + 2
             end_index   = given_jdbc_url.index('@') - 1
             user_passwd_tokens = given_jdbc_url[start_index..end_index].split(':')
 
             # Move the indices either before or after the markers
-            start_index -=3
-            end_index +=2
+            start_index -= 3
+            end_index += 2
 
             uri = jdbc_datasource_config['uri']
-            if (uri[/^oracle/i])
+            if uri[/^oracle/i]
               # Only newer oracle thin driver versions support jdbc:oracle:thin:@//hostname:port format,
               # Just go with @hostname... for now
               # jdbc_url = given_jdbc_url[0..start_index] + 'thin:@//' + given_jdbc_url[end_index..-1]
               jdbc_url = given_jdbc_url[0..start_index] + 'thin:@' + given_jdbc_url[end_index..-1]
             else
               # For all others like postgres/mysql, include the '//' as they support jdbc:postgresql://host:port/database
-              jdbc_url = given_jdbc_url[0..(start_index+2)] + given_jdbc_url[end_index..-1]
+              jdbc_url = given_jdbc_url[0..(start_index + 2)] + given_jdbc_url[end_index..-1]
             end
 
             jdbc_datasource_config['username'] = user_passwd_tokens[0]
@@ -256,9 +257,8 @@ module JavaBuildpack
         def self.save_other_jdbc_settings(jdbc_datasource_config, f)
 
           jdbc_datasource_config.each do |entry|
-
-              # Save everything else that does not match the already saved patterns
-              f.puts "#{entry[0]}=#{entry[1]}" unless entry[0][/(name)|(jndiName)|(password)|(isMulti)|(jdbcUrl)|(mp_algo)|(Capacity)|(connection)|(driver)|(testSql)|(xaProtocol)/]
+            # Save everything else that does not match the already saved patterns
+            f.puts "#{entry[0]}=#{entry[1]}" unless entry[0][/(name)|(jndiName)|(password)|(isMulti)|(jdbcUrl)|(mp_algo)|(Capacity)|(connection)|(driver)|(testSql)|(xaProtocol)/]
           end
 
         end
@@ -360,35 +360,20 @@ module JavaBuildpack
           JavaBuildpack::Container::Wls::WlsUtil.log_and_print(content)
         end
 
-        #def self.test(input_service_bindings_location, output_props_file)
+        # def self.test(input_service_bindings_location, output_props_file)
         #
-        #  input_service_bindings_file = File.open(input_service_bindings_location, 'r')
-        #  service_config = YAML.load_file(input_service_bindings_file)
-        #  service_config.each do |service_entry|
-        #    create_service_definitions_from_bindings(service_entry, output_props_file)
-        #  end
-        #end
+        #   input_service_bindings_file = File.open(input_service_bindings_location, 'r')
+        #   service_config = YAML.load_file(input_service_bindings_file)
+        #   service_config.each do |service_entry|
+        #     create_service_definitions_from_bindings(service_entry, output_props_file)
+        #   end
+        # end
         #
         #
-        #input_service_bindings_location = ARGV[0]
-        #output_props_file = ARGV[1]
+        # input_service_bindings_location = ARGV[0]
+        # output_props_file = ARGV[1]
         #
-        #test(input_service_bindings_location, output_props_file)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        # test(input_service_bindings_location, output_props_file)
 
       end
     end

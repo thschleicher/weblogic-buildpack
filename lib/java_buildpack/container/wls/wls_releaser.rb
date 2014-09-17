@@ -25,7 +25,6 @@ module JavaBuildpack
         include JavaBuildpack::Container::Wls::WlsConstants
 
         def initialize(application, droplet, domain_home, server_name, start_in_wlx_mode)
-
           @droplet           = droplet
           @application       = application
           @domain_home       = domain_home
@@ -47,35 +46,30 @@ module JavaBuildpack
         # 2. Sleep for a predetermined period so users can download files if needed
 
         def create_scripts
-
-        system "/bin/cp #{START_STOP_HOOKS_SRC_PATH}/* #{@application.root}/"
+          system "/bin/cp #{START_STOP_HOOKS_SRC_PATH}/* #{@application.root}/"
           system "chmod +x #{@application.root}/*.sh"
 
           @pre_start_script = Dir.glob("#{@application.root}/#{PRE_START_SCRIPT}")[0]
           @post_stop_script = Dir.glob("#{@application.root}/#{POST_STOP_SCRIPT}")[0]
 
           modify_pre_start_script
-
         end
 
         def pre_start
-
           "/bin/bash ./#{PRE_START_SCRIPT}"
         end
 
         def post_shutdown
-
           "/bin/bash ./#{POST_STOP_SCRIPT}"
         end
 
         private
 
-        HOOKS_RESOURCE       = 'hooks'.freeze
-        PRE_START_SCRIPT     = 'preStart.sh'.freeze
-        POST_STOP_SCRIPT     = 'postStop.sh'.freeze
+        HOOKS_RESOURCE   = 'hooks'.freeze
+        PRE_START_SCRIPT = 'preStart.sh'.freeze
+        POST_STOP_SCRIPT = 'postStop.sh'.freeze
 
         START_STOP_HOOKS_SRC_PATH = "#{BUILDPACK_CONFIG_CACHE_DIR}/#{HOOKS_RESOURCE}".freeze
-
 
         # Modify the templated preStart script with actual values
 
@@ -88,8 +82,8 @@ module JavaBuildpack
           JavaBuildpack::Container::Wls::JvmArgHelper.add_wlx_server_mode(@droplet.java_opts, @start_in_wlx_mode)
           log("Consolidated Java Options for Server: #{@droplet.java_opts.join(' ')}")
 
-          staging_memory_limit=ENV['MEMORY_LIMIT']
-          staging_memory_limit='512m' unless staging_memory_limit
+          staging_memory_limit = ENV['MEMORY_LIMIT']
+          staging_memory_limit = '512m' unless staging_memory_limit
 
           script_path = @pre_start_script.to_s
 

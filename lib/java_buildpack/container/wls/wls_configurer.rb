@@ -232,7 +232,6 @@ module JavaBuildpack
           log('--------------------------------------')
         end
 
-
         def log_domain_config
           log('Configurations for WLS Domain Creation')
           log('--------------------------------------')

@@ -12,5 +12,5 @@ notifications:
     on_start: true
 env:
   global:
-    secure: Fc2++l5TcR3KsUsro98IMSt+Dn+qGHRECgBJgln3G2/Pa+SWYkO6j/pcNL0zxmCoWbsKruWnP4rFrt9wP6BH17e6LdQ8ltRwYIhV4bWrbw1MZWUwhJW20aYyJTs528/5MPXOvC4WHLQvjxEUpphMhNmOc1jQ4wgyihrMTHsvyhE= #CODECLIMATE_REPO_TOKEN
+    secure: njB2370t9TXXmvtVBB7z/aodGOI13sfeCB+Eh/Y/9oSmlnrOHav5QXJbdHKgYbQ+YhBdNfPF9KjW/+bNwi0NbGii0eiTMXw1y+3FDVfTWFFYJYdgpHVMQbZrjVET7DdRPzOmF7xdKz7KK6MhUzWIgA0o000291akDfkWSA5ZlwE= #CODECLIMATE_REPO_TOKEN
 

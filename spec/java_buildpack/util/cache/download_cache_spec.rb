@@ -42,7 +42,7 @@ describe JavaBuildpack::Util::Cache::DownloadCache do
   it 'should raise error if file cannot be found',
      :disable_internet do
 
-    expect { download_cache.get uri }.to raise_error('Unable to find cached file for http://foo-uri/')
+    expect { download_cache.get uri }.to raise_error('Unable to find cached file for http://foo-uri/, check url has complete endpoints(http/https)!!')
   end
 
   it 'should return file from immutable cache if internet is disabled',

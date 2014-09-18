@@ -24,8 +24,10 @@ module JavaBuildpack
   module Container
     module Wls
 
+      # Handle Service Bindings
       class ServiceBindingsHandler
 
+        # From a set of files
         def self.create_service_definitions_from_file_set(service_binding_locations, configRoot, output_props_file)
 
           service_binding_locations.each do |input_service_bindings_location|
@@ -42,6 +44,7 @@ module JavaBuildpack
           end
         end
 
+        # From bindings
         def self.create_service_definitions_from_bindings(service_config, output_props_file)
           service_config.each do |service_entry|
             puts "Service Entry: #{service_entry}"
@@ -60,6 +63,7 @@ module JavaBuildpack
           end
         end
 
+        # From user provided service bindings
         def self.create_user_provided_service_definitions_from_bindings(service_entry, output_props_file)
           user_defined_service = service_entry
           if user_defined_service.to_s[/jdbc/i]
@@ -87,8 +91,8 @@ module JavaBuildpack
           end
         end
 
+        # From application configuration
         def self.create_service_definitions_from_app_config(service_config, module_name, output_props_file)
-
           log_and_print("-----> Processing App bundled Service Definition : #{service_config}")
 
           service_name     = service_config[0]
@@ -118,10 +122,11 @@ module JavaBuildpack
           end
         end
 
+        # JDBC connection retry frequency
         JDBC_CONN_CREATION_RETRY_FREQ_SECS = 900.freeze
 
+        # JDBC bindings
         def self.create_jdbc_service_definition(service_entry, output_props_file)
-
           # p "Processing JDBC service entry: #{service_entry}"
           jdbc_datasource_config             = service_entry['credentials']
           jdbc_datasource_config['name']     = service_entry['name']
@@ -142,18 +147,21 @@ module JavaBuildpack
           [/oracle/i].any? { |filter| matcher(jdbc_datasource_config, filter) }
         end
 
+        # Save the MySql JDBC attribute
         def self.save_mysql_attrib(f)
           f.puts 'driver=com.mysql.jdbc.Driver'
           f.puts 'testSql=SQL SELECT 1'
           f.puts 'xaProtocol=None'
         end
 
+        # Save the Postgres JDBC attribute
         def self.save_postgres_attrib(f)
           f.puts 'driver=org.postgresql.Driver'
           f.puts 'testSql=SQL SELECT 1'
           f.puts 'xaProtocol=None'
         end
 
+        # Save the Oracle JDBC attribute
         def self.save_oracle_attrib(jdbc_datasource_config, f)
           f.puts 'testSql=SQL SELECT 1 from DUAL'
           f.puts jdbc_datasource_config['driver'] ? "driver=#{jdbc_datasource_config['driver']}" : 'driver=oracle.jdbc.OracleDriver'
@@ -163,6 +171,7 @@ module JavaBuildpack
           f.puts "xaProtocol=#{xa_protocol}"
         end
 
+        # Save the JDBC storage capacities
         def self.save_capacities(jdbc_datasource_config, f)
           init_capacity = jdbc_datasource_config['initCapacity']
           max_capacity = jdbc_datasource_config['maxCapacity']
@@ -174,8 +183,8 @@ module JavaBuildpack
           f.puts "maxCapacity=#{max_capacity}"
         end
 
+        # Save the pool settings
         def self.save_pool_setting(jdbc_datasource_config, f)
-
           f.puts "name=#{jdbc_datasource_config['name']}"
           f.puts "jndiName=#{jdbc_datasource_config['jndiName']}"
 
@@ -197,8 +206,8 @@ module JavaBuildpack
 
         end
 
+        # Configure the JDBC connection URL
         def self.configure_jdbc_url(jdbc_datasource_config)
-
           given_jdbc_url = jdbc_datasource_config['jdbcUrl']
 
           return if given_jdbc_url
@@ -245,17 +254,17 @@ module JavaBuildpack
 
           # save the reconfigured jdbc url inside the map
           jdbc_datasource_config['jdbcUrl'] = jdbc_url
-
         end
 
+        # Save the connection reset setting
         def self.save_connectionrefresh_setting(jdbc_datasource_config, f)
           connection_creation_retry_frequency = JDBC_CONN_CREATION_RETRY_FREQ_SECS
           connection_creation_retry_frequency = jdbc_datasource_config['connectionCreationRetryFrequency'] unless jdbc_datasource_config['connectionCreationRetryFrequency'].nil?
           f.puts "connectionCreationRetryFrequency=#{connection_creation_retry_frequency}"
         end
 
+        # Save the other JDBC settings
         def self.save_other_jdbc_settings(jdbc_datasource_config, f)
-
           jdbc_datasource_config.each do |entry|
             # Save everything else that does not match the already saved patterns
             f.puts "#{entry[0]}=#{entry[1]}" unless entry[0][/(name)|(jndiName)|(password)|(isMulti)|(jdbcUrl)|(mp_algo)|(Capacity)|(connection)|(driver)|(testSql)|(xaProtocol)/]
@@ -263,8 +272,8 @@ module JavaBuildpack
 
         end
 
+        # Save the JDBC service definitions
         def self.save_jdbc_service_definition(jdbc_datasource_config, output_props_file)
-
           section_name = jdbc_datasource_config['name']
           section_name = 'JDBCDatasource-' + section_name unless section_name[/^JDBCDatasource/]
           log("Saving JDBC Datasource service defn : #{jdbc_datasource_config}")
@@ -311,6 +320,7 @@ module JavaBuildpack
           end
         end
 
+        # Save the definitions
         def self.save_base_service_definition(service_config, output_props_file, service_name)
           # log("Saving Service Defn : #{service_config} with service_name: #{service_name}")
           File.open(output_props_file, 'a') do |f|
@@ -326,6 +336,7 @@ module JavaBuildpack
           end
         end
 
+        # Save the user defined definitions
         def self.save_from_user_defined_service_definition(service_config, output_props_file, service_name)
           # log("Saving from Yaml, Service Defn : #{service_config} with service_name: #{service_name}")
           File.open(output_props_file, 'a') do |f|
@@ -341,6 +352,7 @@ module JavaBuildpack
           end
         end
 
+        # Match the given JDBC Service against the filter
         def self.matcher(jdbc_service, filter)
           filter = Regexp.new(filter) unless filter.is_a?(Regexp)
 
@@ -352,10 +364,12 @@ module JavaBuildpack
 
         end
 
+        # Log the message
         def self.log(content)
           JavaBuildpack::Container::Wls::WlsUtil.log(content)
         end
 
+        # Log and print the message
         def self.log_and_print(content)
           JavaBuildpack::Container::Wls::WlsUtil.log_and_print(content)
         end

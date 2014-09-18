@@ -21,6 +21,7 @@ module JavaBuildpack
   module Container
     module Wls
 
+      # Release the Weblogic instance
       class WlsReleaser
         include JavaBuildpack::Container::Wls::WlsConstants
 
@@ -55,10 +56,12 @@ module JavaBuildpack
           modify_pre_start_script
         end
 
+        # The Pre-Start script
         def pre_start
           "/bin/bash ./#{PRE_START_SCRIPT}"
         end
 
+        # The Post-Shutdown script
         def post_shutdown
           "/bin/bash ./#{POST_STOP_SCRIPT}"
         end

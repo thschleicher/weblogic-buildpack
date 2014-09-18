@@ -17,16 +17,22 @@
 module JavaBuildpack
   module Container
     module Wls
+
+      # Collection of constants used by the Weblogic container
       module WlsConstants
 
+        # New line character
         NEWLINE              = "\n".freeze
-
+        # Application web-inf directory name
         WEB_INF_DIRECTORY    = 'WEB-INF'.freeze
-
+        # Java binary to execute
         JAVA_BINARY          = 'java'.freeze
+        # Server option name
         SERVER_VM            = '-server'.freeze
+        # Client option name
         CLIENT_VM            = '-client'.freeze
 
+        # Name of the Weblogic configuration script
         WLS_CONFIGURE_SCRIPT = 'configure.sh'.freeze
 
         # Prefer App Bundled Config or Buildpack bundled Config
@@ -44,12 +50,16 @@ module JavaBuildpack
         # Expect to see a '.wls' folder containing domain configurations and script to create the domain within the App bits
         APP_WLS_CONFIG_CACHE_DIR   = '.wls'.freeze
 
-        # Following are relative to the .wls folder all under the APP ROOT
+        # Relative to the .wls folder all under the APP ROOT
         WLS_PRE_JARS_CACHE_DIR     = 'preJars'.freeze
+        # Relative to the .wls folder all under the APP ROOT
         WLS_POST_JARS_CACHE_DIR    = 'postJars'.freeze
 
+        # JMS directory
         WLS_JMS_CONFIG_DIR         = 'jms'.freeze
+        # JDBC directory
         WLS_JDBC_CONFIG_DIR        = 'jdbc'.freeze
+        # Foreign JMS Directory
         WLS_FOREIGN_JMS_CONFIG_DIR = 'foreignjms'.freeze
 
         # Following are relative to the .wls folder all under the APP ROOT

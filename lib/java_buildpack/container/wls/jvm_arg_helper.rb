@@ -18,6 +18,7 @@ module JavaBuildpack
   module Container
     module Wls
 
+      # Weblogic JVM helper
       class JvmArgHelper
 
         # Load the app bundled configurations and re-configure as needed the JVM parameters for the Server VM
@@ -59,6 +60,7 @@ module JavaBuildpack
           reset_java_opts java_opts, jvm_default_map
         end
 
+        # Remove all Java Opts and reset with the ones provided
         def self.reset_java_opts(java_opts, jvm_default_map)
           java_opts.clear
           java_opts << "-Xms#{jvm_default_map['min_heap_size']}m"
@@ -71,8 +73,8 @@ module JavaBuildpack
           java_opts.add_system_property 'weblogic.ListenPort', '$PORT'
         end
 
+        # Check whether to start in Wlx Mode that would disable JMS, EJB and JCA
         def self.add_wlx_server_mode(java_opts, start_in_wlx_mode)
-          # Check whether to start in Wlx Mode that would disable JMS, EJB and JCA
           java_opts.add_system_property 'serverType', 'wlx' if start_in_wlx_mode
         end
       end

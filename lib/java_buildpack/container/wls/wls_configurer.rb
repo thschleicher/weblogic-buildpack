@@ -18,6 +18,7 @@ module JavaBuildpack
   module Container
     module Wls
 
+      # Applies the provided configuration to the installed instance of Weblogic
       class WlsConfigurer
         include JavaBuildpack::Container::Wls::WlsConstants
 
@@ -40,8 +41,8 @@ module JavaBuildpack
           @wls_domain_config_script        = configuration_map['wls_domain_config_script']
         end
 
+        # Configure Weblogic
         def configure
-
           configure_start_time = Time.now
           print "-----> Configuring WebLogic domain under #{@wls_sandbox_root.relative_path_from(@droplet.root)}\n"
 

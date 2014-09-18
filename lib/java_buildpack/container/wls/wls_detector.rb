@@ -18,9 +18,11 @@ module JavaBuildpack
   module Container
     module Wls
 
+      # Encapsulates the logic for detecting an application that should be run on Weblogic
       class WlsDetector
         include JavaBuildpack::Container::Wls::WlsConstants
 
+        # return true if the application should be run on Weblogic
         def self.detect(application)
           search_path = (application.root).to_s + '/**/weblogic*xml'
           wls_config_present = Dir.glob(search_path).length > 0
@@ -61,6 +63,7 @@ module JavaBuildpack
           (application.root + 'APP-INF').exist?
         end
 
+        # Log the message
         def self.log(content)
           JavaBuildpack::Container::Wls::WlsUtil.log(content)
         end

@@ -20,6 +20,7 @@ module JavaBuildpack
   module Container
     module Wls
 
+      # Monitor Agent
       class MonitorAgent
         include JavaBuildpack::Container::Wls::WlsConstants
 
@@ -40,9 +41,12 @@ module JavaBuildpack
 
         end
 
+        # define the path to the agent script
         def monitor_script
           "/bin/bash #{@dumper_agent_script}"
         end
+
+        private
 
         MONITORING_AGENT_DIR     = '.monitor'.freeze
         MONITORING_RESOURCE      = 'monitoring'.freeze
@@ -50,6 +54,8 @@ module JavaBuildpack
         MONITORING_AGENT_SCRIPT  = 'dumperAgent.sh'.freeze
 
         BUILDPACK_MONITOR_AGENT_PATH = "#{BUILDPACK_CONFIG_CACHE_DIR}/#{MONITORING_RESOURCE}/#{MONITORING_AGENT_PATH}".freeze
+
+        private_constant :MONITORING_AGENT_DIR, :MONITORING_RESOURCE, :MONITORING_AGENT_PATH, :MONITORING_AGENT_SCRIPT, :BUILDPACK_MONITOR_AGENT_PATH
 
       end
 

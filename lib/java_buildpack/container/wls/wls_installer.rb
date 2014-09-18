@@ -18,19 +18,19 @@ module JavaBuildpack
   module Container
     module Wls
 
+      # Encapsulates the logic for installing Weblogic in to the DEA
       class WlsInstaller
         include JavaBuildpack::Container::Wls::WlsConstants
 
         def initialize(input_file, installation_map)
-
           @input_file        = input_file
           @droplet           = installation_map['droplet']
           @wls_sandbox_root  = installation_map['wls_sandbox_root']
           @config_cache_root = installation_map['config_cache_root']
         end
 
+        # Do the installation
         def install
-
           expand_start_time = Time.now
 
           FileUtils.rm_rf @wls_sandbox_root
@@ -64,7 +64,6 @@ module JavaBuildpack
         WLS_ORA_INV_INSTALL_PATH   = '/tmp/wlsOraInstallInventory'.freeze
 
         def install_using_zip(zipFile)
-
           log_and_print("Installing WebLogic from downloaded zip file using config script under #{@wls_sandbox_root}!")
 
           system "/usr/bin/unzip #{zipFile} -d #{@wls_sandbox_root} >/dev/null"
@@ -100,7 +99,6 @@ module JavaBuildpack
         end
 
         def install_using_jar_or_binary(install_binary_file)
-
           print_warnings
 
           java_binary      = Dir.glob("#{@droplet.root}" + '/**/' + JAVA_BINARY, File::FNM_DOTMATCH)[0]
@@ -143,7 +141,6 @@ module JavaBuildpack
         end
 
         def save_middleware_home_in_configure_script(configure_script, wls_install_path, java_home)
-
           original = File.open(configure_script, 'r') { |f| f.read }
 
           updated_java_home_entry       = "JAVA_HOME=\"#{java_home}\""
@@ -167,7 +164,6 @@ module JavaBuildpack
         end
 
         def copy_templates
-
           ora_install_inventory_src     = @config_cache_root + ORA_INSTALL_INVENTORY_FILE
           wls_install_response_file_src = @config_cache_root + WLS_INSTALL_RESPONSE_FILE
 
@@ -236,7 +232,6 @@ module JavaBuildpack
 
         # Check whether running on non-linux machine, to pick the correct JAVA_HOME location
         def check_and_reset_java_home_for_non_linux(java_home)
-
           unless linux?
             log_and_print('Warning!!! Running on Mac or other non-linux flavor, cannot use linux java binaries downloaded earlier...!!')
             log_and_print('Trying to find local java instance on machine')

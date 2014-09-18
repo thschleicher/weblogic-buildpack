@@ -18,18 +18,22 @@ module JavaBuildpack
   module Container
     module Wls
 
+      # Util code for use in the Weblogic container
       class WlsUtil
         include JavaBuildpack::Container::Wls::WlsConstants
 
+        # Log the message
         def self.log(content)
           logger.debug { content + NEWLINE }
         end
 
+        # Log and print the message
         def self.log_and_print(content)
           print '       ' + content + NEWLINE
           logger.debug { content + NEWLINE }
         end
 
+        # Get a logger instance
         def self.logger
           JavaBuildpack::Logging::LoggerFactory.get_logger Weblogic
         end

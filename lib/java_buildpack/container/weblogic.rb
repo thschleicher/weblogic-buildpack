@@ -79,7 +79,7 @@ module JavaBuildpack
         end
       end
 
-      # @macro base_component_detect
+      # (see JavaBuildpack::Component::BaseComponent#detect)
       def detect
         if @wls_version
           [wls_id(@wls_version)]
@@ -88,7 +88,7 @@ module JavaBuildpack
         end
       end
 
-      # @macro base_component_compile
+      # (see JavaBuildpack::Component::BaseComponent#compile)
       def compile
         download_and_install_wls
         configure
@@ -97,8 +97,8 @@ module JavaBuildpack
         # link_to(@application.root.children, deployed_app_root)
       end
 
+      # (see JavaBuildpack::Component::BaseComponent#release)
       def release
-
         monitor_agent = JavaBuildpack::Container::Wls::MonitorAgent.new(@application)
         monitor_script = monitor_agent.monitor_script
 
@@ -242,6 +242,7 @@ module JavaBuildpack
         end
       end
 
+      # Download Weblogic and unpack it
       def download_and_install_wls
         installation_map = {
           'droplet'           => @droplet,
@@ -258,6 +259,7 @@ module JavaBuildpack
         end
       end
 
+      # Configure the Weblogic instance
       def configure
         configuration_map = {
           'app_name'                 => @app_name,
@@ -314,6 +316,7 @@ module JavaBuildpack
 
       end
 
+      # The root directory of the application being deployed
       def deployed_app_root
         @domain_apps_dir + APP_NAME
       end
@@ -326,6 +329,7 @@ module JavaBuildpack
         (@application.root + 'APP-INF').exist? || (@application.root + 'META-INF/application.xml').exist?
       end
 
+      # Create a folder
       def create_sub_folder(parent, child)
         return unless (parent + '/' + child).exist?
 
@@ -333,6 +337,7 @@ module JavaBuildpack
         system "mkdir #{parent}/#{child}"
       end
 
+      # Log a message
       def log(content)
         JavaBuildpack::Container::Wls::WlsUtil.log(content)
       end

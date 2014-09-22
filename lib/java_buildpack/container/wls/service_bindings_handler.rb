@@ -56,24 +56,15 @@ module JavaBuildpack
             elsif service_type[/cloudamqp/i]
               save_amqp_jms_service_definition(service_entry, output_props_file)
             elsif service_type[/user-provided/]
-<<<<<<< HEAD
               create_user_provided_service_definitions_from_bindings(service_entry, output_props_file)
-=======
-              create_from_user_provider_service_definition(service_entry, output_props_file)
->>>>>>> General refactoring of the code and scripts
             else
               log_and_print("Unknown Service bindings !!!... #{service_entry}")
             end
           end
         end
 
-<<<<<<< HEAD
         # From user provided service bindings
         def self.create_user_provided_service_definitions_from_bindings(service_entry, output_props_file)
-=======
-        def self.create_from_user_provider_service_definition(service_entry, output_props_file)
-
->>>>>>> General refactoring of the code and scripts
           user_defined_service = service_entry
           if user_defined_service.to_s[/jdbc/i]
             # This appears to be of type JDBC
@@ -92,22 +83,13 @@ module JavaBuildpack
             service_name = 'ForeignJMS-' + service_name unless service_name[/^ForeignJMS/i]
             save_from_user_defined_service_definition(user_defined_service, output_props_file, service_name)
           else
-<<<<<<< HEAD
-            # This appears to be an unknown type of service - just convert to whilst properties type
-=======
             # This appears to be an unknown type of service - just convert to wlst properties type
->>>>>>> General refactoring of the code and scripts
             # and let the script figure out what to do
             log_and_print("Unknown User defined Service bindings !!!... #{user_defined_service}")
             service_name = user_defined_service['name']
             save_from_user_defined_service_definition(user_defined_service, output_props_file, service_name)
           end
         end
-<<<<<<< HEAD
-=======
-
-        def self.create_service_definitions_from_app_config(service_config, module_name, output_props_file)
->>>>>>> General refactoring of the code and scripts
 
         # From application configuration
         def self.create_service_definitions_from_app_config(service_config, module_name, output_props_file)
@@ -244,11 +226,7 @@ module JavaBuildpack
           # First add 'jdbc'
           given_jdbc_url = "jdbc:#{given_jdbc_url}"
 
-<<<<<<< HEAD
-          if given_jdbc_url[/@/] && given_jdbc_url[%r{//}]
-=======
           if given_jdbc_url[/@/] && %r{//}.match(given_jdbc_url)
->>>>>>> General refactoring of the code and scripts
             start_index = given_jdbc_url.index('//') + 2
             end_index   = given_jdbc_url.index('@') - 1
             user_passwd_tokens = given_jdbc_url[start_index..end_index].split(':')
@@ -288,10 +266,6 @@ module JavaBuildpack
         # Save the other JDBC settings
         def self.save_other_jdbc_settings(jdbc_datasource_config, f)
           jdbc_datasource_config.each do |entry|
-<<<<<<< HEAD
-=======
-
->>>>>>> General refactoring of the code and scripts
             # Save everything else that does not match the already saved patterns
             f.puts "#{entry[0]}=#{entry[1]}" unless entry[0][/(name)|(jndiName)|(password)|(isMulti)|(jdbcUrl)|(mp_algo)|(Capacity)|(connection)|(driver)|(testSql)|(xaProtocol)/]
           end
@@ -394,25 +368,6 @@ module JavaBuildpack
         def self.log_and_print(content)
           JavaBuildpack::Container::Wls::WlsUtil.log_and_print(content)
         end
-<<<<<<< HEAD
-
-        # def self.test(input_service_bindings_location, output_props_file)
-        #
-        #   input_service_bindings_file = File.open(input_service_bindings_location, 'r')
-        #   service_config = YAML.load_file(input_service_bindings_file)
-        #   service_config.each do |service_entry|
-        #     create_service_definitions_from_bindings(service_entry, output_props_file)
-        #   end
-        # end
-        #
-        #
-        # input_service_bindings_location = ARGV[0]
-        # output_props_file = ARGV[1]
-        #
-        # test(input_service_bindings_location, output_props_file)
-
-=======
->>>>>>> General refactoring of the code and scripts
       end
     end
   end

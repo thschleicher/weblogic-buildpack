@@ -19,8 +19,8 @@
 # e.g.  repository_root: "http://example.com/oracle-wls/{platform}/{architecture}"
 
 version: 12.1.+
-repository_root: "http://12.1.1.1:7777/fileserver/wls"
-#repository_root: "https://s3.amazonaws.com/pcf-resources/wls"
+#repository_root: "https://12.1.1.1:7777/fileserver/wls"
+repository_root: "https://s3.amazonaws.com/wls-bp-fileserver/wls"
 
 # prefer_app_config - Use the App bundled configs over the buildpack bundled configs?
 # If set to true, all configs and scripts packaged with the app bundle will be used for domain and server creation.

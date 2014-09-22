@@ -1,72 +1,24 @@
 #!/bin/bash
 
+TARGET_DIR=$(cd $(dirname $0) && pwd)
+
 # Dont kick off right away
 # Ruby might get picked as the process to watch rather than java or node-js as the server is yet to start....
 DELAY_INTERVAL_BEFORE_KICKOFF=$1
 
-SLEEP_INTERVAL=30
 TARGET_ACTION=Heap
-DUMP_FOLDER="/home/vcap/dumps"
-mkdir -p $DUMP_FOLDER 2>/dev/null
 
 # The DUMP_FOLDER should correspond with the trigger script that checks for the file
 # The target file to monitor to kick off heap dump
 DUMP_MONITOR_TARGET="/home/vcap/tmp/dumpHeap"
 
-function touchAndSaveTimestamp() {
-  `touch $DUMP_MONITOR_TARGET`
-  lastSavedAccessTimestamp=`stat -c %X $DUMP_MONITOR_TARGET`
-}
+source $TARGET_DIR/commonUtil.sh
 
-function findAppLabel()
-{
-  old_IFS=$IFS
-  IFS=","
-  for envAppContent in `cat /home/vcap/logs/env.log`
-  do
-    #if [[ "$envAppContent"  == *instance_index* ]]; then
-    #  appInst=`echo $envAppContent | sed -e 's/\"//g;s/instance_index://g;s/^[ \t]*//;s/[ \t]*$//'`
-    #elif [[ "$envAppContent"  == *application_name* ]]; then
-    #  appName=`echo $envAppContent | sed -e 's/\"//g;s/application_name://g;s/^[ \t]*//;s/[ \t]*$//'`
-    #fi
+#function touchAndSaveTimestamp() {
+#  `touch $DUMP_MONITOR_TARGET`
+#  lastSavedAccessTimestamp=`stat -c %X $DUMP_MONITOR_TARGET`
+#}
 
-    case "$envAppContent" in
-      *instance_index* )
-      appInst=`echo $envAppContent | sed -e 's/\"//g;s/instance_index://g;s/^[ \t]*//;s/[ \t]*$//'`;;
-
-      *application_name* )
-      appName=`echo $envAppContent | sed -e 's/\"//g;s/application_name://g;s/^[ \t]*//;s/[ \t]*$//'`;;
-    esac
-
-
-  done
-  IFS=$old_IFS
-  echo ${appName}-${appInst}
-}
-
-function findTargetType()
-{
-  old_IFS=$IFS
-  IFS=$'\n'
-  appType="RUBY"
-  for process in `ps aux --sort rss | tail -5`
-  do
-    #if [[ "$process"  == *\/java* ]]; then
-    #  appType="JAVA"
-    #elif [[ "$process"  == *\/ruby* ]]; then
-    #  appType="RUBY"
-    #fi
-    case "$process" in
-      *\/java* )
-      appType="JAVA";;
-
-      *\/ruby* )
-      appType="RUBY";;
-    esac
-  done
-  IFS=$old_IFS
-  echo ${appType}
-}
 
 function setJavaTools()
 {

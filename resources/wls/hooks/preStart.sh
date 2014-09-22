@@ -73,12 +73,19 @@ function scaleArgs()
 # So create linkage from /tmp/staged/app to actual environment of /home/vcap/app when things run in real execution
 # Create paths that match the staging env, as otherwise scripts will break!!
 
-if [ ! -d \"/tmp/staged\" ]; then
-   /bin/mkdir /tmp/staged
+# Directory containing the app folder
+# Will be set by buildpack to staging directory
+VCAP_ROOT=REPLACE_VCAP_ROOT_MARKER
+
+# Check if the directory exists
+# Staging uses /tmp/staged
+# Runtime uses /home/vcap
+if [ ! -d \"${VCAP_ROOT}\" ]; then
+   /bin/mkdir ${VCAP_ROOT}
 fi;
 
-if [ ! -d \"/tmp/staged/app\" ]; then
-   /bin/ln -s /home/vcap/app /tmp/staged/app
+if [ ! -d \"${VCAP_ROOT}/app\" ]; then
+   /bin/ln -s /home/vcap/app ${VCAP_ROOT}/app
 fi;
 
 
@@ -98,7 +105,7 @@ if ! [ "$INSTANCE_INDEX" -eq "$INSTANCE_INDEX" ] 2>/dev/null; then
 fi
 
 
-# Get the Staging env limit
+# Get the Staging env Memory limit
 
 STAGING_MEMORY_LIMIT=REPLACE_STAGING_MEMORY_LIMIT_MARKER
 
@@ -121,7 +128,7 @@ JVM_ARGS="REPLACE_JAVA_ARGS_MARKER"
 
 # Scale up or down the heap settings if total memory limits has been changed compared to staging env
 
-if [ "$ACTUAL_MEMORY_LIMIT" != "$STAGING_MEMORY_LIMIT" ]; then
+if [ "${ACTUAL_MEMORY_LIMIT}X" != "X" -a "$ACTUAL_MEMORY_LIMIT" != "$STAGING_MEMORY_LIMIT" ]; then
   # There is difference between staging and actual execution
   echo "Detected difference in memory limits of staging and actual Execution environment !!"
   echo "  Staging Env Memory limits: ${STAGING_MEMORY_LIMIT}"

@@ -15,6 +15,7 @@
 # limitations under the License.
 
 require 'java_buildpack/container/wls/jvm_arg_helper'
+require 'pathname'
 require 'yaml'
 
 module JavaBuildpack
@@ -89,10 +90,12 @@ module JavaBuildpack
           staging_memory_limit = '512m' unless staging_memory_limit
 
           script_path = @pre_start_script.to_s
+          vcap_root = Pathname.new(@application.root).parent.to_s
 
           original = File.open(script_path, 'r') { |f| f.read }
 
-          modified = original.gsub(/REPLACE_JAVA_ARGS_MARKER/, @droplet.java_opts.join(' '))
+          modified = original.gsub(/REPLACE_VCAP_ROOT_MARKER/, vcap_root)
+          modified = modified.gsub(/REPLACE_JAVA_ARGS_MARKER/, @droplet.java_opts.join(' '))
           modified = modified.gsub(/REPLACE_DOMAIN_HOME_MARKER/, @domain_home.to_s)
           modified = modified.gsub(/REPLACE_SERVER_NAME_MARKER/, @server_name)
           modified = modified.gsub(/REPLACE_WLS_PRE_JARS_CACHE_DIR_MARKER/, WLS_PRE_JARS_CACHE_DIR)

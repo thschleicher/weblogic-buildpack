@@ -19,7 +19,7 @@ function startAgent {
 
   $TARGET_DIR/${agentScript}   $WAIT_INTERVAL_BEFORE_KICKOFF  2>&1  >  $TARGET_DIR/${agentLog}   &
   pid=$!
-  echo Kicked off $type Agent with pid: $pid
+  echo Kicked off $type Agent with pid: $pid with output going to $TARGET_DIR/${agentLog}
   case "$type" in
      "Heap") heapAgentPid=$pid;;
      "Stats") statsAgentPid=$pid;;

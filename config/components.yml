@@ -16,15 +16,15 @@
 # Configuration for components to use in the buildpack
 ---
 containers:
-  - "JavaBuildpack::Container::Weblogic"
-#  - "JavaBuildpack::Container::DistZip"
-#  - "JavaBuildpack::Container::Groovy"
-#  - "JavaBuildpack::Container::JavaMain"
-#  - "JavaBuildpack::Container::PlayFramework"
-#  - "JavaBuildpack::Container::Ratpack"
-#  - "JavaBuildpack::Container::SpringBoot"
-#  - "JavaBuildpack::Container::SpringBootCLI"
+  - "JavaBuildpack::Container::DistZip"
+  - "JavaBuildpack::Container::Groovy"
+  - "JavaBuildpack::Container::JavaMain"
+  - "JavaBuildpack::Container::PlayFramework"
+  - "JavaBuildpack::Container::Ratpack"
+  - "JavaBuildpack::Container::SpringBoot"
+  - "JavaBuildpack::Container::SpringBootCLI"
 #  - "JavaBuildpack::Container::Tomcat"
+  - "JavaBuildpack::Container::Weblogic"
 
 # In order to use Oracle JREs instead of OpenJDK, you must comment out the OpenJDK line and uncomment the Oracle line.
 # Please see the documentation for more detail.
@@ -40,5 +40,5 @@ frameworks:
   - "JavaBuildpack::Framework::PostgresqlJDBC"
   - "JavaBuildpack::Framework::SpringAutoReconfiguration"
   - "JavaBuildpack::Framework::SpringInsight"
-#  - "JavaBuildpack::Framework::PlayFrameworkAutoReconfiguration"
-#  - "JavaBuildpack::Framework::PlayFrameworkJPAPlugin"
+  - "JavaBuildpack::Framework::PlayFrameworkAutoReconfiguration"
+  - "JavaBuildpack::Framework::PlayFrameworkJPAPlugin"

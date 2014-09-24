@@ -231,6 +231,9 @@ module JavaBuildpack
             cached_file.last_modified(File::RDONLY | File::BINARY) { |f| request['If-Modified-Since'] = File.read(f) }
           end
 
+          # Add license acceptance cookie to enable jdk downloads
+          request['Cookie'] = 'oraclelicense=accept-securebackup-cookie' if uri.host[/oracle.com/]
+
           @logger.debug { "Request: #{request.path}, #{request.to_hash}" }
           request
         end

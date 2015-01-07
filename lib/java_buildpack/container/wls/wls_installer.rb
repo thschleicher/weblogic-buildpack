@@ -203,7 +203,7 @@ module JavaBuildpack
           install_pre_args << " mkdir #{@wls_install_path}; chmod +x #{new_binary_path}; "
 
           # install_post_args = " -silent -responseFile #{wls_install_response_file_target}"
-		      install_post_args = " -mode=silent -silent_xml=#{wls_install_response_file_target}"
+		      install_post_args = " -mode=silent -responseFile #{wls_install_response_file_target}"
           # install_post_args << " -invPtrLoc #{ora_install_inventory_target}"
 
           install_command = install_pre_args + install_command_args +  install_post_args

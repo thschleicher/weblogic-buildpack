@@ -56,7 +56,7 @@ module JavaBuildpack
         # Required during Install...
         # Files required for installing from a jar in silent mode
         ORA_INSTALL_INVENTORY_FILE = 'oraInst.loc'.freeze
-        WLS_INSTALL_RESPONSE_FILE  = 'installResponseFile.xml'.freeze
+        WLS_INSTALL_RESPONSE_FILE  = 'installResponseFile'.freeze
 
         # keyword to change to point to actual wlsInstall in response file
         WLS_INSTALL_PATH_TEMPLATE  = 'WEBLOGIC_INSTALL_PATH'.freeze
@@ -202,9 +202,9 @@ module JavaBuildpack
           install_pre_args << " ln -s #{install_binary_file} #{new_binary_path}; "
           install_pre_args << " mkdir #{@wls_install_path}; chmod +x #{new_binary_path}; "
 
-          # install_post_args = " -silent -responseFile #{wls_install_response_file_target}"
-		      install_post_args = " -mode=silent -silent_xml=#{wls_install_response_file_target}"
-          # install_post_args << " -invPtrLoc #{ora_install_inventory_target}"
+          install_post_args = " -silent -responseFile #{wls_install_response_file_target}"
+	#	      install_post_args = " -mode=silent -silent_xml=#{wls_install_response_file_target}"
+          install_post_args << " -invPtrLoc #{ora_install_inventory_target}"
 
           install_command = install_pre_args + install_command_args +  install_post_args
 

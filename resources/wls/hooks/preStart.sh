@@ -94,7 +94,7 @@ APP_NAME=`echo ${VCAP_APPLICATION} | sed -e 's/,\"/&\n\"/g;s/\"//g;s/,//g'| grep
 
 SPACE_NAME=`echo ${VCAP_APPLICATION} | sed -e 's/,\"/&\n\"/g;s/\"//g;s/,//g'| grep space_name | cut -d: -f2`
 
-IP_ADDR=`/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{print $2}' | cut -d: -f2`
+IP_ADDR=`/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | grep -v "^10." | awk '{print $2}' | cut -d: -f2`
 
 INSTANCE_INDEX=`echo ${VCAP_APPLICATION} | sed -e 's/,\"/&\n\"/g;s/\"//g;s/,//g'| grep instance_index| cut -d: -f2`
 

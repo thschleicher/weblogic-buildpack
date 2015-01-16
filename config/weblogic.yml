@@ -19,7 +19,7 @@
 # e.g.  repository_root: "http://example.com/oracle-wls/{platform}/{architecture}"
 
 repository_root: "http://5.153.62.138:91/"
-version: 12.1.2
+version: 12.1.3
 
 # prefer_app_config - Use the App bundled configs over the buildpack bundled configs?
 # If set to true, all configs and scripts packaged with the app bundle will be used for domain and server creation.
@@ -31,5 +31,5 @@ prefer_app_config: true
 # server_in_wlx_mode - Start the WLS Server in Limited Runtime footprint mode
 # If true, this would disable JMS, EJB and JCA layers and result in smaller memory footprints.
 # If false, this would start the server in full blown mode - enabling JMS, JCA and EJBs.
-start_in_wlx_mode: true
+start_in_wlx_mode: false
 

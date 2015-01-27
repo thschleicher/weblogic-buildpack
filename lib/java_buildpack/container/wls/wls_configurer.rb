@@ -212,10 +212,14 @@ module JavaBuildpack
 
         def link_jars_to_domain
 
-          log('Linking pre and post jar directories relative to the Domain')
-
-          system "/bin/ln -s #{@config_cache_root}/#{WLS_PRE_JARS_CACHE_DIR} #{@domain_home}/#{WLS_PRE_JARS_CACHE_DIR} 2>/dev/null"
-          system "/bin/ln -s #{@config_cache_root}/#{WLS_POST_JARS_CACHE_DIR} #{@domain_home}/#{WLS_POST_JARS_CACHE_DIR} 2>/dev/null"
+          log('Linking/Copy pre and post jar directories relative to the Domain')
+          #system "/bin/ln -s #{@config_cache_root}/#{WLS_PRE_JARS_CACHE_DIR} #{@domain_home}/#{WLS_PRE_JARS_CACHE_DIR} 2>/dev/null"
+          #system "/bin/ln -s #{@config_cache_root}/#{WLS_POST_JARS_CACHE_DIR} #{@domain_home}/#{WLS_POST_JARS_CACHE_DIR} 2>/dev/null"
+          system "/bin/mkdir "#{@domain_home}/#{WLS_PRE_JARS_CACHE_DIR}"
+          system "/bin/mkdir "#{@domain_home}/#{WLS_POST_JARS_CACHE_DIR}"
+          
+          system "/bin/cp #{@config_cache_root}/#{WLS_PRE_JARS_CACHE_DIR}/* #{@domain_home}/#{WLS_PRE_JARS_CACHE_DIR} 2>/dev/null"
+          system "/bin/cp -s #{@config_cache_root}/#{WLS_POST_JARS_CACHE_DIR}/* #{@domain_home}/#{WLS_POST_JARS_CACHE_DIR} 2>/dev/null"
         end
 
         # Generate the property file based on app bundled configs for test against WLST

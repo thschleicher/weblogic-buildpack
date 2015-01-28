@@ -215,8 +215,8 @@ module JavaBuildpack
           log('Linking/Copy pre and post jar directories relative to the Domain')
           #system "/bin/ln -s #{@config_cache_root}/#{WLS_PRE_JARS_CACHE_DIR} #{@domain_home}/#{WLS_PRE_JARS_CACHE_DIR} 2>/dev/null"
           #system "/bin/ln -s #{@config_cache_root}/#{WLS_POST_JARS_CACHE_DIR} #{@domain_home}/#{WLS_POST_JARS_CACHE_DIR} 2>/dev/null"
-          system "/bin/mkdir "#{@domain_home}/#{WLS_PRE_JARS_CACHE_DIR}"
-          system "/bin/mkdir "#{@domain_home}/#{WLS_POST_JARS_CACHE_DIR}"
+          system "/bin/mkdir #{@domain_home}/#{WLS_PRE_JARS_CACHE_DIR}"
+          system "/bin/mkdir #{@domain_home}/#{WLS_POST_JARS_CACHE_DIR}"
           
           system "/bin/cp -R #{@config_cache_root}/#{WLS_PRE_JARS_CACHE_DIR}/ #{@domain_home}/#{WLS_PRE_JARS_CACHE_DIR} 2>/dev/null"
           system "/bin/cp -R #{@config_cache_root}/#{WLS_POST_JARS_CACHE_DIR}/ #{@domain_home}/#{WLS_POST_JARS_CACHE_DIR} 2>/dev/null"

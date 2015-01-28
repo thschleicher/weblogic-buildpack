@@ -132,6 +132,7 @@ module JavaBuildpack
           jdbc_datasource_config             = service_entry['credentials']
           jdbc_datasource_config['name']     = service_entry['name']
           jdbc_datasource_config['jndiName'] = service_entry['name'] unless jdbc_datasource_config['jndiName']
+          jdbc_datasource_config['driver'] = service_entry['driver'] 
 
           save_jdbc_service_definition(jdbc_datasource_config, output_props_file)
         end
@@ -150,14 +151,14 @@ module JavaBuildpack
 
         # Save the MySql JDBC attribute
         def self.save_mysql_attrib(f)
-          f.puts 'driver=com.mysql.jdbc.Driver'
+          f.puts jdbc_datasource_config['driver'] ? "driver=#{jdbc_datasource_config['driver']}" : 'driver=com.mysql.jdbc.Driver'
           f.puts 'testSql=SQL SELECT 1'
           f.puts 'xaProtocol=None'
         end
 
         # Save the Postgres JDBC attribute
         def self.save_postgres_attrib(f)
-          f.puts 'driver=org.postgresql.Driver'
+          f.puts jdbc_datasource_config['driver'] ? "driver=#{jdbc_datasource_config['driver']}" : 'driver=org.postgresql.Driver'
           f.puts 'testSql=SQL SELECT 1'
           f.puts 'xaProtocol=None'
         end

@@ -177,7 +177,7 @@ module JavaBuildpack
           f.puts "xaProtocol=#{xa_protocol}"
         end
         # Save the DB2 JDBC attribute
-        def self.save_db2_attrib(f)
+        def self.save_db2_attrib(jdbc_datasource_config, f)
           f.puts jdbc_datasource_config['driver'] ? "driver=#{jdbc_datasource_config['driver']}" : 'driver=com.ibm.db2.jcc.DB2Driver'
           f.puts 'SQL SELECT COUNT(*) FROM SYSIBM.SYSTABLES'
           xa_protocol = jdbc_datasource_config['xaProtocol']

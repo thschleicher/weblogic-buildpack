@@ -148,6 +148,10 @@ module JavaBuildpack
         def self.oracle?(jdbc_datasource_config)
           [/oracle/i].any? { |filter| matcher(jdbc_datasource_config, filter) }
         end
+        
+        def self.db2?(jdbc_datasource_config)
+           [/db2/i].any? { |filter| matcher(jdbc_datasource_config, filter) }
+        end
 
         # Save the MySql JDBC attribute
         def self.save_mysql_attrib(f)
@@ -171,6 +175,14 @@ module JavaBuildpack
           xa_protocol = jdbc_datasource_config['xaProtocol']
           xa_protocol = 'None' unless xa_protocol
           f.puts "xaProtocol=#{xa_protocol}"
+        end
+        # Save the DB2 JDBC attribute
+        def self.save_db2_attrib(f)
+          f.puts jdbc_datasource_config['driver'] ? "driver=#{jdbc_datasource_config['driver']}" : 'driver=com.ibm.db2.jcc.DB2Driver'
+          f.puts 'SQL SELECT COUNT(*) FROM SYSIBM.SYSTABLES'
+          xa_protocol = jdbc_datasource_config['xaProtocol']
+          xa_protocol = 'None' unless xa_protocol
+          f.puts 'xaProtocol=#{xa_protocol}'
         end
 
         # Save the JDBC storage capacities
@@ -294,6 +306,8 @@ module JavaBuildpack
               save_postgres_attrib(f)
             elsif oracle?(jdbc_datasource_config)
               save_oracle_attrib(jdbc_datasource_config, f)
+            elsif db2?(jdbc_datasource_config)
+              save_db2_attrib(jdbc_datasource_config, f)
             end
 
             save_other_jdbc_settings(jdbc_datasource_config, f)

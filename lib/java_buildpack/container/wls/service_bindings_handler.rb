@@ -182,7 +182,7 @@ module JavaBuildpack
           f.puts 'testSql=SQL SELECT COUNT(*) FROM SYSIBM.SYSTABLES'
           xa_protocol = jdbc_datasource_config['xaProtocol']
           xa_protocol = 'None' unless xa_protocol
-          f.puts 'xaProtocol=#{xa_protocol}'
+          f.puts "xaProtocol=#{xa_protocol}"
         end
 
         # Save the JDBC storage capacities
